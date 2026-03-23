@@ -514,7 +514,26 @@ const PIN_CODE = "1234";
 
 // Notion DB ID
 const RENRAKUCHO_DB_ID = "325d6592-945a-80cc-8820-000bfbd88d5a";  // 連絡帳DB
-const USERS_DB_ID      = "1d9d6592-945a-813b-8784-000b28bd54fd";  // 利用者情報DB
+
+// ★ 利用者リスト（利用者が増えた場合はここに追加してください）
+const USERS = [
+  "石井 美弥子",
+  "岡野 久子",
+  "佐藤 嵩彦",
+  "安達 愛香",
+  "金井 直美",
+  "櫻井 麻弥",
+  "柴山 美香",
+  "丸山 登志子",
+  "岡田 正末",
+  "堀川 明美",
+  "山田 美穂",
+  "横塚 時也",
+  "萩原 奈津樹",
+  "富田 蓮人",
+  "石原 皇太",
+  "堀米 亜希子",
+];
 
 // ══════════════════════════════════════════════
 //  状態
@@ -560,57 +579,8 @@ async function initApp() {
   document.getElementById('headerDate').textContent =
     today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
 
-  // Notionから利用者名を動的取得
-  await loadUsersFromNotion();
-}
-
-// ══════════════════════════════════════════════
-//  利用者名をNotionから動的取得
-// ══════════════════════════════════════════════
-async function loadUsersFromNotion() {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp' }],
-        messages: [{
-          role: 'user',
-          content: `Notionの利用者情報管理データベース（collection ID: ${USERS_DB_ID}）から、
-現在登録されている全利用者の「氏名 / 個別支援計画」フィールドの値を取得してください。
-「通常時の連絡帳」などのテンプレートページは除外してください。
-結果をJSON配列のみで返してください。例: ["石井 美弥子", "田中 太郎"]
-JSONのみ返し、前後の説明文やマークダウン記号は一切不要です。`
-        }]
-      })
-    });
-
-    const data = await res.json();
-    const text = data.content?.map(c => c.text || '').join('') || '';
-
-    // JSON抽出
-    const match = text.match(/\[[\s\S]*?\]/);
-    if (match) {
-      const names = JSON.parse(match[0]).filter(n =>
-        n && typeof n === 'string' &&
-        !n.includes('テンプレート') &&
-        !n.includes('通常時') &&
-        n.trim() !== ''
-      );
-      if (names.length > 0) {
-        userList = names;
-        renderUserButtons(names);
-        return;
-      }
-    }
-    throw new Error('no users');
-  } catch (e) {
-    console.warn('Notion取得失敗、フォールバック:', e);
-    // フォールバック（取得失敗時）
-    renderUserButtons(['（利用者情報の取得に失敗しました）']);
-  }
+  // 利用者ボタンを表示
+  renderUserButtons(USERS);
 }
 
 function renderUserButtons(names) {
