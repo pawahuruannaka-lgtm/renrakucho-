@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ぱわふる安中｜連絡帳入力</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1E6FD9;
+  --primary-light: #EBF3FF;
+  --accent: #F97316;
+  --accent-light: #FFF4EB;
+  --success: #16A34A;
+  --success-light: #F0FDF4;
+  --warn: #CA8A04;
+  --warn-light: #FEFCE8;
+  --danger: #DC2626;
+  --danger-light: #FEF2F2;
+  --reccheck: #7C3AED;
+  --reccheck-light: #F5F3FF;
+  --bullet: #0891B2;
+  --bullet-light: #ECFEFF;
+  --bg: #F1F5F9;
+  --card: #FFFFFF;
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 8px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* ─── ログイン画面 ─── */
+#loginScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E6FD9 50%, #7C3AED 100%);
+}
+.login-card {
+  background: white; border-radius: 20px;
+  padding: 44px 40px; width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
+}
+.login-logo { font-size: 48px; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+.login-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: left; margin-bottom: 6px; letter-spacing: .05em; }
+.login-input {
+  width: 100%; padding: 14px 16px; font-size: 18px; letter-spacing: .2em;
+  border: 2px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; outline: none; text-align: center;
+  transition: border-color .15s; margin-bottom: 20px;
+}
+.login-input:focus { border-color: var(--primary); }
+.login-btn {
+  width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #7C3AED);
+  color: white; border: none; border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .2s; letter-spacing: .03em;
+}
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,111,217,.4); }
+.login-btn:active { transform: translateY(0); }
+.login-error {
+  margin-top: 14px; padding: 10px 14px; background: var(--danger-light);
+  border: 1px solid #FCA5A5; border-radius: var(--radius-sm);
+  color: var(--danger); font-size: 13px; font-weight: 600; display: none;
+}
+.login-hint { margin-top: 16px; font-size: 11px; color: var(--text-muted); }
+
+/* ─── メインアプリ ─── */
+#appScreen { display: none; }
+
+.header {
+  background: var(--primary); color: #fff; padding: 0 24px; height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 16px rgba(30,111,217,.35);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-title { font-size: 16px; font-weight: 700; }
+.header-sub { font-size: 11px; opacity: .8; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 12px; opacity: .9; font-weight: 600; }
+.logout-btn {
+  padding: 6px 12px; background: rgba(255,255,255,.2); color: white;
+  border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.logout-btn:hover { background: rgba(255,255,255,.3); }
+
+.container { max-width: 820px; margin: 0 auto; padding: 20px 16px 100px; }
+@media (min-width: 640px) {
+  .container { padding: 28px 32px 80px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .full-col { grid-column: 1 / -1; }
+}
+
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.card-header {
+  padding: 13px 18px 11px; font-size: 12px; font-weight: 700; color: var(--primary);
+  letter-spacing: .06em; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+}
+.card-body { padding: 14px 16px; }
+
+/* ─── ローディング（利用者取得中） ─── */
+.user-loading {
+  padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.mini-spinner {
+  width: 18px; height: 18px; border: 3px solid var(--border);
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: spin .7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── 利用者グリッド ─── */
+.user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.user-btn {
+  padding: 11px 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .15s;
+  text-align: center; line-height: 1.35;
+}
+.user-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.user-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
+.user-btn:active { transform: scale(.97); }
+
+/* ─── 入力フィールド ─── */
+.field-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .05em; margin-bottom: 6px; }
+.input {
+  width: 100%; padding: 10px 13px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 14px; color: var(--text);
+  background: #fff; outline: none; transition: border-color .15s;
+}
+.input:focus { border-color: var(--primary); }
+.input::placeholder { color: #adb5bd; }
+textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
+
+/* ─── バイタル ─── */
+.vital-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.vital-item { display: flex; flex-direction: column; gap: 4px; }
+.vital-unit { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+.section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .08em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+.recheck-toggle {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  padding: 10px 13px; border: 2px dashed var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 600;
+  transition: all .15s; user-select: none;
+}
+.recheck-toggle:hover { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); }
+.recheck-toggle.active { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); border-style: solid; }
+.recheck-toggle .t-icon { font-size: 16px; transition: transform .2s; }
+.recheck-toggle.active .t-icon { transform: rotate(45deg); }
+.recheck-area { display: none; margin-top: 12px; padding: 14px; background: var(--reccheck-light); border: 2px solid var(--reccheck); border-radius: var(--radius-sm); }
+.recheck-area.show { display: block; }
+.recheck-label { font-size: 11px; font-weight: 700; color: var(--reccheck); letter-spacing: .06em; margin-bottom: 10px; }
+
+/* ─── チップ ─── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  padding: 7px 13px; border: 2px solid var(--border); border-radius: 999px;
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer;
+  transition: all .15s; user-select: none; white-space: nowrap;
+}
+.chip:active { transform: scale(.95); }
+.chip.sel-blue   { border-color: var(--primary);  background: var(--primary-light);  color: var(--primary);  font-weight: 700; }
+.chip.sel-green  { border-color: var(--success);  background: var(--success-light);  color: var(--success);  font-weight: 700; }
+.chip.sel-warn   { border-color: var(--warn);     background: var(--warn-light);     color: var(--warn);     font-weight: 700; }
+.chip.sel-red    { border-color: var(--danger);   background: var(--danger-light);   color: var(--danger);   font-weight: 700; }
+
+/* ─── 食事 ─── */
+.meal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+@media (min-width: 640px) { .meal-grid { grid-template-columns: repeat(8, 1fr); } }
+.meal-btn {
+  padding: 9px 4px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: center; transition: all .15s;
+}
+.meal-btn:active { transform: scale(.95); }
+.meal-btn.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 700; }
+
+/* ─── 箇条書きモードトグル ─── */
+.mode-toggle {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.mode-btn {
+  flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--text-muted); cursor: pointer; transition: all .15s; text-align: center;
+}
+.mode-btn.active { border-color: var(--bullet); background: var(--bullet-light); color: var(--bullet); }
+.mode-btn:hover:not(.active) { border-color: #94a3b8; }
+
+/* ─── 箇条書き入力エリア ─── */
+.bullet-card { border: 2px solid var(--bullet) !important; }
+.bullet-card .card-header { color: var(--bullet); }
+.bullet-hint {
+  margin-top: 8px; padding: 10px 12px;
+  background: var(--bullet-light); border-radius: var(--radius-sm);
+  font-size: 11px; color: var(--bullet); line-height: 1.8;
+}
+.bullet-hint strong { font-weight: 700; }
+.bullet-convert-btn {
+  width: 100%; margin-top: 10px; padding: 11px;
+  background: var(--bullet); color: white; border: none; border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.bullet-convert-btn:hover { background: #0e7490; }
+.bullet-convert-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ─── 生成ボタン ─── */
+.generate-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, #5B21B6 100%);
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 16px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 18px rgba(30,111,217,.35);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all .2s; letter-spacing: .03em; margin-bottom: 14px;
+}
+.generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(30,111,217,.4); }
+.generate-btn:active { transform: translateY(0); }
+
+/* ─── 結果 ─── */
+.result-card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-md);
+  border: 2px solid var(--success); overflow: hidden; display: none; margin-bottom: 14px;
+}
+.result-card.show { display: block; animation: slideUp .35s ease; }
+@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.result-header {
+  padding: 12px 18px; background: var(--success-light); border-bottom: 1px solid #BBF7D0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.result-header-left { font-size: 13px; font-weight: 700; color: var(--success); }
+.result-header-right { font-size: 11px; color: var(--text-muted); }
+.result-text {
+  padding: 16px 18px; font-size: 14px; line-height: 1.9; color: var(--text);
+  white-space: pre-wrap; min-height: 80px; outline: none; cursor: text; background: #fff;
+}
+.result-text:focus { background: #FAFEFF; }
+.result-actions { padding: 12px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.action-btn {
+  flex: 1; min-width: 90px; padding: 11px 12px; border: none; border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center;
+  justify-content: center; gap: 5px; white-space: nowrap;
+}
+.action-btn:active { transform: scale(.97); }
+.btn-regen  { background: var(--primary-light); color: var(--primary); }
+.btn-copy   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-notion { background: #111; color: #fff; }
+
+/* ─── 過去記録 ─── */
+.history-toggle {
+  font-size: 12px; font-weight: 700; color: var(--text-muted); background: none;
+  border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0;
+}
+.history-toggle:hover { color: var(--primary); }
+.history-toggle .arr { transition: transform .2s; display: inline-block; }
+.history-toggle.open .arr { transform: rotate(90deg); }
+.history-body { display: none; margin-top: 10px; }
+.history-body.open { display: block; }
+.history-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 7px; background: #FAFAFA; }
+.history-date { font-weight: 700; color: var(--text-muted); font-size: 11px; margin-bottom: 5px; }
+.history-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+.h-chip { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.h-chip-blue   { background: var(--primary-light); color: var(--primary); }
+.h-chip-green  { background: var(--success-light); color: var(--success); }
+.h-chip-orange { background: var(--accent-light); color: var(--accent); }
+.history-memo { color: var(--text-muted); font-size: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ─── ローディングオーバーレイ ─── */
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 999; align-items: center; justify-content: center; }
+.loading-overlay.show { display: flex; }
+.loading-card { background: #fff; border-radius: var(--radius); padding: 32px 44px; text-align: center; box-shadow: var(--shadow-md); min-width: 220px; }
+.loading-ring { width: 46px; height: 46px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 16px; }
+.loading-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.loading-sub { font-size: 12px; color: var(--text-muted); }
+
+/* ─── トースト ─── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+  background: #1E293B; color: #fff; padding: 11px 22px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; opacity: 0; transition: all .3s;
+  z-index: 1000; white-space: nowrap; pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.badge-purple { background: var(--reccheck-light); color: var(--reccheck); }
+.badge-cyan   { background: var(--bullet-light);   color: var(--bullet); }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     ログイン画面
+════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">📓</div>
+    <div class="login-title">ぱわふる安中</div>
+    <div class="login-sub">連絡帳入力システム</div>
+    <label class="login-label" for="pinInput">暗証番号を入力してください</label>
+    <input type="password" class="login-input" id="pinInput" maxlength="8"
+      placeholder="● ● ● ●" inputmode="numeric"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="loginError">❌ 暗証番号が違います</div>
+    <div class="login-hint">※ 暗証番号は事務所スタッフにお問い合わせください</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     メインアプリ
+════════════════════════════════════════ -->
+<div id="appScreen">
+
+  <div class="header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">📓 連絡帳入力</div>
+        <div class="header-sub">ぱわふる安中</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="headerDate"></div>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ── 入力モード切り替え ── -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeNormal" onclick="setMode('normal')">
+        ✅ 通常入力モード<br><span style="font-size:10px;font-weight:400;">チェック＋メモ</span>
+      </button>
+      <button class="mode-btn" id="modeBullet" onclick="setMode('bullet')">
+        📝 箇条書きモード<br><span style="font-size:10px;font-weight:400;">素早く箇条書きで入力</span>
+      </button>
+    </div>
+
+    <div class="two-col">
+
+      <!-- 左カラム（常に表示） -->
+      <div>
+
+        <!-- 利用者選択 -->
+        <div class="card">
+          <div class="card-header">👤 利用者</div>
+          <div class="card-body">
+            <div id="userLoadingMsg" class="user-loading">
+              <span class="mini-spinner"></span> Notionから利用者情報を取得中...
+            </div>
+            <div class="user-grid" id="userGrid" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- 実施日 -->
+        <div class="card">
+          <div class="card-header">📅 実施日</div>
+          <div class="card-body">
+            <input type="date" class="input" id="dateInput">
+          </div>
+        </div>
+
+        <!-- バイタル -->
+        <div class="card">
+          <div class="card-header">🩺 バイタル</div>
+          <div class="card-body">
+            <div class="section-title">📊 初回測定</div>
+            <div class="vital-grid">
+              <div class="vital-item">
+                <label class="field-label">体温</label>
+                <input type="number" class="input" id="temp" placeholder="36.5" step="0.1" min="34" max="42">
+                <div class="vital-unit">℃</div>
+              </div>
+              <div class="vital-item">
+                <label class="field-label">血圧</label>
+                <input type="text" class="input" id="bp" placeholder="120/80">
+                <div class="vital-unit">mmHg</div>
+              </div>
+              <div class="vital-item">
+                <label class="field-label">脈拍</label>
+                <input type="number" class="input" id="pulse" placeholder="70" min="30" max="200">
+                <div class="vital-unit">回/分</div>
+              </div>
+            </div>
+
+            <div class="recheck-toggle" id="recheckToggle" onclick="toggleRecheck()">
+              <span class="t-icon">＋</span>
+              <span>再検あり</span>
+              <span class="badge badge-purple">任意</span>
+            </div>
+            <div class="recheck-area" id="recheckArea">
+              <div class="recheck-label">🔄 再検測定値</div>
+              <div class="vital-grid">
+                <div class="vital-item">
+                  <label class="field-label">体温（再）</label>
+                  <input type="number" class="input" id="temp2" placeholder="36.5" step="0.1" min="34" max="42">
+                  <div class="vital-unit">℃</div>
+                </div>
+                <div class="vital-item">
+                  <label class="field-label">血圧（再）</label>
+                  <input type="text" class="input" id="bp2" placeholder="120/80">
+                  <div class="vital-unit">mmHg</div>
+                </div>
+                <div class="vital-item">
+                  <label class="field-label">脈拍（再）</label>
+                  <input type="number" class="input" id="pulse2" placeholder="70" min="30" max="200">
+                  <div class="vital-unit">回/分</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /左カラム -->
+
+      <!-- 右カラム -->
+      <div>
+
+        <!-- ══ 通常入力モード ══ -->
+        <div id="normalModeArea">
+
+          <!-- 体調 -->
+          <div class="card">
+            <div class="card-header">😊 体調・気分</div>
+            <div class="card-body">
+              <div class="chips">
+                <div class="chip" onclick="toggleChip(this,'condition','良好','sel-green')">😊 良好</div>
+                <div class="chip" onclick="toggleChip(this,'condition','要観察','sel-warn')">👀 要観察</div>
+                <div class="chip" onclick="toggleChip(this,'condition','体調不良','sel-red')">🤒 体調不良</div>
+                <div class="chip" onclick="toggleChip(this,'condition','気分不快','sel-warn')">😞 気分不快</div>
+                <div class="chip" onclick="toggleChip(this,'condition','気分落ち気味','sel-warn')">😔 落ち気味</div>
+                <div class="chip" onclick="toggleChip(this,'condition','気分高揚','sel-blue')">😄 気分高揚</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 活動 -->
+          <div class="card">
+            <div class="card-header">🏃 本日の活動</div>
+            <div class="card-body">
+              <div class="chips">
+                <div class="chip" onclick="toggleChip(this,'activity','体操','sel-blue')">🤸 体操</div>
+                <div class="chip" onclick="toggleChip(this,'activity','散歩','sel-blue')">🚶 散歩</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(算数)','sel-blue')">🔢 算数</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(国語)','sel-blue')">📖 国語</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(漢字)','sel-blue')">✏️ 漢字</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(社会)','sel-blue')">🌏 社会</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(脳トレ)','sel-blue')">🧠 脳トレ</div>
+                <div class="chip" onclick="toggleChip(this,'activity','プリント(美術)','sel-blue')">🎨 美術</div>
+                <div class="chip" onclick="toggleChip(this,'activity','塗り絵','sel-blue')">🖌️ 塗り絵</div>
+                <div class="chip" onclick="toggleChip(this,'activity','制作','sel-blue')">🛠️ 制作</div>
+                <div class="chip" onclick="toggleChip(this,'activity','運動レク','sel-blue')">⚽ 運動レク</div>
+                <div class="chip" onclick="toggleChip(this,'activity','パズル','sel-blue')">🧩 パズル</div>
+                <div class="chip" onclick="toggleChip(this,'activity','カラオケ','sel-blue')">🎤 カラオケ</div>
+                <div class="chip" onclick="toggleChip(this,'activity','入浴','sel-blue')">🛁 入浴</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 食事 -->
+          <div class="card">
+            <div class="card-header">🍱 食事摂取量</div>
+            <div class="card-body">
+              <div class="meal-grid">
+                <button class="meal-btn" onclick="selectMeal(this,'完食')">完食</button>
+                <button class="meal-btn" onclick="selectMeal(this,'8割')">8割</button>
+                <button class="meal-btn" onclick="selectMeal(this,'6割')">6割</button>
+                <button class="meal-btn" onclick="selectMeal(this,'半分量')">半分量</button>
+                <button class="meal-btn" onclick="selectMeal(this,'4割')">4割</button>
+                <button class="meal-btn" onclick="selectMeal(this,'2割')">2割</button>
+                <button class="meal-btn" onclick="selectMeal(this,'少量')">少量</button>
+                <button class="meal-btn" onclick="selectMeal(this,'摂取なし')">摂取なし</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- メモ（箇条書き対応） -->
+          <div class="card">
+            <div class="card-header">💬 メモ・特記事項 <span class="badge badge-cyan">箇条書き可</span></div>
+            <div class="card-body">
+              <textarea class="input" id="memoInput" rows="4"
+                placeholder="箇条書きでも文章でもOKです&#10;例：&#10;・声が大きくなる場面あり&#10;・他利用者と笑顔で交流できた&#10;・午後少し眠そうにしていた"></textarea>
+              <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">
+                ※ 箇条書き（・〜）で書くとAIが自動的に保護者向け文章に組み込みます
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /normalModeArea -->
+
+        <!-- ══ 箇条書きモード ══ -->
+        <div id="bulletModeArea" style="display:none;">
+          <div class="card bullet-card">
+            <div class="card-header">📝 箇条書きで今日の様子を入力 <span class="badge badge-cyan">AIが変換</span></div>
+            <div class="card-body">
+              <textarea class="input" id="bulletInput" rows="8"
+                placeholder="今日の様子を箇条書きで入力してください&#10;&#10;・体操で元気よく体を動かした&#10;・昼食は完食。水分もよく摂れた&#10;・午後は少し眠そうだったが休憩後に回復&#10;・他の利用者と笑顔で会話していた&#10;・バイタルは問題なし"></textarea>
+              <div class="bullet-hint">
+                <strong>📌 ヒント</strong><br>
+                ・で始まる行を箇条書きとして認識します<br>
+                バイタル・食事・活動もここに書くか、左の欄でも入力できます<br>
+                書いた内容はそのままAIが保護者向け文章に変換します
+              </div>
+            </div>
+          </div>
+        </div><!-- /bulletModeArea -->
+
+      </div><!-- /右カラム -->
+
+      <!-- 過去記録（フルカラム） -->
+      <div class="card full-col" id="historyCard" style="display:none;">
+        <div class="card-header">
+          <button class="history-toggle" id="historyToggle" onclick="toggleHistory()">
+            📋 過去の記録を参照 <span class="arr">▶</span>
+          </button>
+        </div>
+        <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+          <div class="history-body" id="historyBody">
+            <div id="historyList" style="color:var(--text-muted);font-size:13px;padding:8px 0;">読み込み中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 生成ボタン -->
+      <div class="full-col">
+        <button class="generate-btn" onclick="generateText()">✨ AIで連絡帳を生成する</button>
+      </div>
+
+      <!-- 結果 -->
+      <div class="result-card full-col" id="resultCard">
+        <div class="result-header">
+          <div class="result-header-left">✅ 生成完了 — クリックして編集できます</div>
+          <div class="result-header-right">Ctrl+A で全選択</div>
+        </div>
+        <div class="result-text" id="resultText" contenteditable="true"></div>
+        <div class="result-actions">
+          <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
+          <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
+          <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notionに保存</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /appScreen -->
+
+<!-- ローディング -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-card">
+    <div class="loading-ring"></div>
+    <div class="loading-title" id="loadingTitle">処理中...</div>
+    <div class="loading-sub" id="loadingSub">少々お待ちください</div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  ★★★ 設定（ここを変更してください）★★★
+// ══════════════════════════════════════════════
+
+// Anthropic APIキー（https://console.anthropic.com/ で取得）
+const ANTHROPIC_API_KEY = "sk-ant-api03-ここにAPIキーを貼り付け";
+
+// 暗証番号（職員のみ共有）
+const PIN_CODE = "0375";
+
+// Notion DB ID（変更不要）
+const RENRAKUCHO_DB_ID = "325d6592-945a-80cc-8820-000bfbd88d5a";  // 連絡帳DB
+const USERS_DB_ID      = "1d9d6592-945a-813b-8784-000b28bd54fd";  // 利用者情報DB
+
+// ══════════════════════════════════════════════
+//  状態
+// ══════════════════════════════════════════════
+let selectedUser       = null;
+let selectedConditions = [];
+let selectedActivities = [];
+let selectedMeal       = null;
+let historyData        = [];
+let recheckOpen        = false;
+let userList           = [];
+let currentMode        = 'normal';  // 'normal' | 'bullet'
+
+// ══════════════════════════════════════════════
+//  モード切り替え
+// ══════════════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeNormal').classList.toggle('active', mode === 'normal');
+  document.getElementById('modeBullet').classList.toggle('active', mode === 'bullet');
+  document.getElementById('normalModeArea').style.display = mode === 'normal' ? 'block' : 'none';
+  document.getElementById('bulletModeArea').style.display = mode === 'bullet' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════
+//  ログイン
+// ══════════════════════════════════════════════
+function doLogin() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (pin === PIN_CODE) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display  = 'block';
+    initApp();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+    setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
+  }
+}
+
+function doLogout() {
+  document.getElementById('appScreen').style.display  = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pinInput').value = '';
+  resetForm();
+}
+
+// ══════════════════════════════════════════════
+//  アプリ初期化
+// ══════════════════════════════════════════════
+async function initApp() {
+  const today = new Date();
+  document.getElementById('dateInput').value = today.toISOString().split('T')[0];
+  document.getElementById('headerDate').textContent =
+    today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  await loadUsersFromNotion();
+}
+
+// ══════════════════════════════════════════════
+//  利用者名をNotionから動的取得
+// ══════════════════════════════════════════════
+async function loadUsersFromNotion() {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp' }],
+        messages: [{
+          role: 'user',
+          content: `Notionの利用者情報管理データベース（collection ID: ${USERS_DB_ID}）から、
+現在登録されている全利用者の「氏名 / 個別支援計画」フィールドの値を取得してください。
+「通常時の連絡帳」などのテンプレートページは除外してください。
+結果をJSON配列のみで返してください。例: ["石井 美弥子", "田中 太郎"]
+JSONのみ返し、前後の説明文やマークダウン記号は一切不要です。`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+
+    const match = text.match(/\[[\s\S]*?\]/);
+    if (match) {
+      const names = JSON.parse(match[0]).filter(n =>
+        n && typeof n === 'string' &&
+        !n.includes('テンプレート') &&
+        !n.includes('通常時') &&
+        n.trim() !== ''
+      );
+      if (names.length > 0) {
+        userList = names;
+        renderUserButtons(names);
+        return;
+      }
+    }
+    throw new Error('no users');
+  } catch (e) {
+    console.warn('Notion取得失敗:', e);
+    renderUserButtons(['（利用者情報の取得に失敗しました）']);
+  }
+}
+
+function renderUserButtons(names) {
+  const loading = document.getElementById('userLoadingMsg');
+  const grid    = document.getElementById('userGrid');
+  loading.style.display = 'none';
+  grid.style.display    = 'grid';
+  grid.innerHTML = '';
+  names.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'user-btn';
+    btn.textContent = name;
+    btn.onclick = () => selectUser(name, btn);
+    grid.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  フォーム操作
+// ══════════════════════════════════════════════
+function selectUser(name, btn) {
+  selectedUser = name;
+  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('historyCard').style.display = 'block';
+  loadHistory(name);
+}
+
+function toggleRecheck() {
+  recheckOpen = !recheckOpen;
+  document.getElementById('recheckToggle').classList.toggle('active', recheckOpen);
+  document.getElementById('recheckArea').classList.toggle('show', recheckOpen);
+  if (!recheckOpen) ['temp2','bp2','pulse2'].forEach(id => document.getElementById(id).value = '');
+}
+
+function toggleChip(el, type, value, cls) {
+  if (type === 'condition') {
+    const i = selectedConditions.indexOf(value);
+    if (i >= 0) { selectedConditions.splice(i,1); el.className='chip'; }
+    else { selectedConditions.push(value); el.className=`chip ${cls}`; }
+  } else {
+    const i = selectedActivities.indexOf(value);
+    if (i >= 0) { selectedActivities.splice(i,1); el.className='chip'; }
+    else { selectedActivities.push(value); el.className=`chip ${cls}`; }
+  }
+}
+
+function selectMeal(el, val) {
+  selectedMeal = val;
+  document.querySelectorAll('.meal-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleHistory() {
+  const btn  = document.getElementById('historyToggle');
+  const body = document.getElementById('historyBody');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════
+//  過去記録ロード
+// ══════════════════════════════════════════════
+async function loadHistory(userName) {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ 読み込み中...</div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp' }],
+        messages: [{
+          role: 'user',
+          content: `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）から、
+利用者名「${userName}」の直近3件の記録を取得してください。
+各記録について以下のフィールドを取得してください：実施日、体調、活動、マルチセレクト（食事量）、メモ。
+結果を以下のJSON配列形式のみで返してください：
+[{"date":"YYYY-MM-DD","condition":["良好"],"activity":["体操"],"meal":"完食","memo":"メモ内容"}]
+JSONのみ返し、前後の説明文やマークダウン記号は不要です。データがない場合は[]を返してください。`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.map(c => c.text||'').join('') || '';
+    const match = text.match(/\[[\s\S]*?\]/);
+
+    if (match) {
+      const records = JSON.parse(match[0]);
+      historyData = records;
+      if (records.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
+        return;
+      }
+      list.innerHTML = records.map(h => `
+        <div class="history-item">
+          <div class="history-date">📅 ${fmtDate(h.date)}</div>
+          <div class="history-chips">
+            ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
+            ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
+            ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
+          </div>
+          <div class="history-memo">${h.memo||''}</div>
+        </div>
+      `).join('');
+    } else {
+      throw new Error('parse error');
+    }
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⚠️ 過去記録の取得に失敗しました</div>';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  AI文章生成
+// ══════════════════════════════════════════════
+async function generateText() {
+  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+  if (ANTHROPIC_API_KEY.includes('ここに')) { showToast('⚠️ APIキーを設定してください'); return; }
+
+  const temp   = document.getElementById('temp').value;
+  const bp     = document.getElementById('bp').value;
+  const pulse  = document.getElementById('pulse').value;
+  const temp2  = document.getElementById('temp2').value;
+  const bp2    = document.getElementById('bp2').value;
+  const pulse2 = document.getElementById('pulse2').value;
+  const date   = document.getElementById('dateInput').value;
+
+  const vital1 = buildVital(temp, bp, pulse);
+  const vital2 = recheckOpen ? buildVital(temp2, bp2, pulse2) : '';
+  const recheckNote = vital2 ? `\n【再検バイタル】${vital2}（再検があった旨を文中に自然に含めること）` : '';
+
+  const histCtx = historyData.length > 0
+    ? '\n\n【直近の記録（参考）】\n' + historyData.map(h =>
+        `${h.date}: 体調=${(h.condition||[]).join('・')} 活動=${(h.activity||[]).join('・')} 食事=${h.meal||''} メモ:${h.memo||''}`
+      ).join('\n')
+    : '';
+
+  let prompt;
+
+  if (currentMode === 'bullet') {
+    // ── 箇条書きモード専用プロンプト ──
+    const bulletText = document.getElementById('bulletInput').value.trim();
+    if (!bulletText) { showToast('⚠️ 箇条書きを入力してください'); return; }
+
+    prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
+以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+
+【利用者】${selectedUser}
+【実施日】${fmtDate(date)}
+【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
+【今日の様子（箇条書き）】
+${bulletText}
+${histCtx}
+
+【文章作成のルール】
+- 上記の箇条書きを自然な保護者向け文章に変換する
+- 利用者の家族が読む連絡帳として丁寧で温かみのある文体
+- 200〜350字程度
+- バイタル数値は文中に含めず状態として表現する
+- 再検がある場合はその旨を自然に一文で盛り込む
+- 箇条書きの内容を漏れなく、しかし自然な流れで組み込む
+- 結びは「引き続き見守ってまいります」等で締める
+- 「本日は〜」または「今日は〜」で書き出す
+- 敬語・丁寧語を使う
+- JSONや箇条書きにせず連続した文章として出力する`;
+
+  } else {
+    // ── 通常モードプロンプト ──
+    const memo = document.getElementById('memoInput').value.trim();
+    const hasBullets = memo && memo.split('\n').some(line => line.trim().startsWith('・') || line.trim().startsWith('-') || line.trim().startsWith('•'));
+    const memoInstruction = hasBullets
+      ? '【担当者メモ（箇条書き）】以下の箇条書きを自然な文章に展開して組み込むこと：\n' + memo
+      : `【担当者メモ】${memo || 'なし'}`;
+
+    prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
+以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+
+【利用者】${selectedUser}
+【実施日】${fmtDate(date)}
+【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
+【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
+【本日の活動】${selectedActivities.length ? selectedActivities.join('、') : '記録なし'}
+【食事摂取量】${selectedMeal || '記録なし'}
+${memoInstruction}${histCtx}
+
+【文章作成のルール】
+- 利用者の家族が読む連絡帳として丁寧で温かみのある文体
+- 200〜350字程度
+- 体調 → 活動 → 食事 の順で自然な流れ
+- バイタル数値は文中に含めず状態として表現する
+- 再検がある場合はその旨を自然に一文で盛り込む
+- 担当者メモの内容（箇条書きの場合は展開して）を自然に組み込む
+- 結びは「引き続き見守ってまいります」等で締める
+- 「本日は〜」または「今日は〜」で書き出す
+- 敬語・丁寧語を使う
+- JSONや箇条書きにせず連続した文章として出力する`;
+  }
+
+  showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text?.trim() || '';
+    hideLoading();
+    if (!text) throw new Error('empty');
+    document.getElementById('resultText').textContent = text;
+    const rc = document.getElementById('resultCard');
+    rc.classList.add('show');
+    rc.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    showToast('✨ 文章を生成しました！');
+  } catch(e) {
+    hideLoading();
+    showToast('❌ 生成に失敗しました。再度お試しください');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  Notion保存
+// ══════════════════════════════════════════════
+async function saveToNotion() {
+  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+
+  const memo   = document.getElementById('resultText').textContent;
+  const date   = document.getElementById('dateInput').value;
+  const vital1 = buildVital(document.getElementById('temp').value, document.getElementById('bp').value, document.getElementById('pulse').value);
+  const vital2 = recheckOpen ? buildVital(document.getElementById('temp2').value, document.getElementById('bp2').value, document.getElementById('pulse2').value) : '';
+
+  // 保存時の体調・活動（箇条書きモードでは未選択の場合がある）
+  const conditions = selectedConditions.length ? selectedConditions.join(', ') : '';
+  const activities = selectedActivities.length ? selectedActivities.join(', ') : '';
+  const meal = selectedMeal || '';
+
+  showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp' }],
+        messages: [{
+          role: 'user',
+          content: `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）に以下のデータを1件登録してください。
+
+利用者名: ${selectedUser}
+実施日: ${date}
+バイタル: ${vital1}
+バイタル（再検）: ${vital2}
+体調: ${conditions}
+活動: ${activities}
+マルチセレクト（食事量）: ${meal}
+メモ: ${memo}
+
+登録完了したら「登録完了」とだけ返してください。`
+        }]
+      })
+    });
+    const data = await res.json();
+    hideLoading();
+    const txt = data.content?.map(c=>c.text||'').join('') || '';
+    if (txt.includes('完了') || txt.includes('登録') || txt.includes('作成')) {
+      showToast('✅ Notionに保存しました！');
+      setTimeout(resetForm, 1800);
+    } else {
+      showToast('✅ 処理しました。Notionをご確認ください');
+    }
+  } catch(e) {
+    hideLoading();
+    showToast('❌ 保存に失敗しました');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  コピー
+// ══════════════════════════════════════════════
+async function copyText() {
+  const text = document.getElementById('resultText').textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 クリップボードにコピーしました');
+  } catch {
+    const el = document.getElementById('resultText');
+    const r = document.createRange(); r.selectNodeContents(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+    showToast('📋 テキストを選択しました');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  リセット
+// ══════════════════════════════════════════════
+function resetForm() {
+  selectedUser=null; selectedConditions=[]; selectedActivities=[]; selectedMeal=null; historyData=[];
+  document.querySelectorAll('.user-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.chip').forEach(c=>{c.className='chip';});
+  document.querySelectorAll('.meal-btn').forEach(b=>b.classList.remove('selected'));
+  ['temp','bp','pulse','temp2','bp2','pulse2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('memoInput').value='';
+  document.getElementById('bulletInput').value='';
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('historyCard').style.display='none';
+  if (recheckOpen) toggleRecheck();
+  document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
+  setMode('normal');
+  window.scrollTo({top:0,behavior:'smooth'});
+  showToast('🎉 入力をリセットしました');
+}
+
+// ══════════════════════════════════════════════
+//  ユーティリティ
+// ══════════════════════════════════════════════
+function buildVital(temp, bp, pulse) {
+  return [temp?`T ${temp}℃`:'', bp?`BP ${bp}`:'', pulse?`P ${pulse}回/分`:''].filter(Boolean).join('  ');
+}
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('ja-JP', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+}
+function showLoading(title, sub) {
+  document.getElementById('loadingTitle').textContent = title;
+  document.getElementById('loadingSub').textContent   = sub;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
