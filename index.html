@@ -931,9 +931,11 @@ ${memoInstruction}${histCtx}
       })
     });
     const data = await res.json();
+    // エラーレスポンスの確認
+    if (data.error) throw new Error(`API Error: ${data.error.type} - ${data.error.message}`);
     const text = data.content?.[0]?.text?.trim() || '';
     hideLoading();
-    if (!text) throw new Error('empty');
+    if (!text) throw new Error(`空のレスポンス: ${JSON.stringify(data).slice(0,200)}`);
     document.getElementById('resultText').textContent = text;
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
@@ -941,7 +943,10 @@ ${memoInstruction}${histCtx}
     showToast('✨ 文章を生成しました！');
   } catch(e) {
     hideLoading();
-    showToast('❌ 生成に失敗しました。再度お試しください');
+    // エラー詳細を画面に表示
+    document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
+    document.getElementById('resultCard').classList.add('show');
+    showToast('❌ 生成に失敗しました');
   }
 }
 
