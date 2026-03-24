@@ -651,55 +651,32 @@ async function initApp() {
 }
 
 // ══════════════════════════════════════════════
-//  利用者名をNotionから動的取得
+//  利用者名リスト（Notionから取得済み・直接埋め込み）
+//  ※ 利用者が増減した場合はここを更新してください
 // ══════════════════════════════════════════════
+const USERS_LIST = [
+  "岡野 久子",
+  "佐藤 嵩彦",
+  "櫻井憲二",
+  "横塚時也",
+  "櫻井 麻弥",
+  "安達 愛香",
+  "山田 美穂",
+  "金井 直美",
+  "石井 美弥子",
+  "岡田 正末",
+  "富田 蓮人",
+  "柴山 美香",
+  "丸山 登志子",
+  "堀川 明美",
+  "堀米亜希子",
+  "萩原 奈津樹",
+  "石原皇太"
+];
+
 async function loadUsersFromNotion() {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
-        messages: [{
-          role: 'user',
-          content: `Notionの利用者情報管理データベース（collection ID: ${USERS_DB_ID}）から、
-現在登録されている全利用者の「氏名 / 個別支援計画」フィールドの値を取得してください。
-「通常時の連絡帳」などのテンプレートページは除外してください。
-結果をJSON配列のみで返してください。例: ["石井 美弥子", "田中 太郎"]
-JSONのみ返し、前後の説明文やマークダウン記号は一切不要です。`
-        }]
-      })
-    });
-
-    const data = await res.json();
-    const text = data.content?.map(c => c.text || '').join('') || '';
-
-    const match = text.match(/\[[\s\S]*?\]/);
-    if (match) {
-      const names = JSON.parse(match[0]).filter(n =>
-        n && typeof n === 'string' &&
-        !n.includes('テンプレート') &&
-        !n.includes('通常時') &&
-        n.trim() !== ''
-      );
-      if (names.length > 0) {
-        userList = names;
-        renderUserButtons(names);
-        return;
-      }
-    }
-    throw new Error('no users');
-  } catch (e) {
-    console.warn('Notion取得失敗:', e);
-    showManualInput();
-  }
+  userList = USERS_LIST;
+  renderUserButtons(USERS_LIST);
 }
 
 function showManualInput() {
@@ -805,7 +782,7 @@ async function loadHistory(userName) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
         messages: [{
@@ -948,7 +925,7 @@ ${memoInstruction}${histCtx}
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -996,7 +973,7 @@ async function saveToNotion() {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
         messages: [{
