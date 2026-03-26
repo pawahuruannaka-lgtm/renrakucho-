@@ -34,12 +34,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
 
-/* ─── ログイン画面 ─── */
-#loginScreen {
+/* ─── ログイン・セットアップ共通背景 ─── */
+#loginScreen, #setupScreen {
   display: flex; align-items: center; justify-content: center;
   min-height: 100vh; padding: 20px;
   background: linear-gradient(135deg, #1E3A8A 0%, #1E6FD9 50%, #7C3AED 100%);
 }
+#setupScreen { display: none; position: fixed; inset: 0; z-index: 300; flex-direction: column; }
 .login-card {
   background: white; border-radius: 20px;
   padding: 44px 40px; width: 100%; max-width: 400px;
@@ -320,26 +321,36 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     <button class="login-btn" onclick="doLogin()">ログイン</button>
     <div class="login-error" id="loginError">❌ 暗証番号が違います</div>
     <div class="login-hint">※ 暗証番号は事務所スタッフにお問い合わせください</div>
+    <div class="login-hint" style="margin-top:8px;">✨ AI文章生成：Google Gemini（無料）使用</div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════
      APIキー設定画面（初回のみ）
 ════════════════════════════════════════ -->
-<div id="setupScreen" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:200; align-items:center; justify-content:center; flex-direction:column;">
+<div id="setupScreen">
   <div class="login-card">
     <div class="login-logo">🔑</div>
     <div class="login-title">初回設定</div>
-    <div class="login-sub">APIキーを入力してください</div>
-    <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;text-align:center;">このデバイスに1回だけ入力すれば次回から不要です</p>
-    <label class="login-label" for="apiKeySetup">Gemini APIキー</label>
-    <input type="password" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
-      style="font-size:12px;" onkeydown="if(event.key==='Enter') doSaveApiKey()">
-    <button class="login-btn" onclick="doSaveApiKey()">保存してログイン</button>
-    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
-    <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0;text-align:center;">
-      キーは <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary);">aistudio.google.com/apikey</a> で無料取得
+    <div class="login-sub">Gemini APIキーを入力してください</div>
+    <p style="font-size:12px;color:var(--text-muted);margin:-16px 0 20px;text-align:center;line-height:1.6;">
+      このデバイスに<strong>1回だけ</strong>入力すれば<br>次回からはPINのみでOKです
     </p>
+    <label class="login-label" for="apiKeySetup">Gemini APIキー（無料）</label>
+    <input type="text" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
+      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
+      onkeydown="if(event.key==='Enter') doSaveApiKey()">
+    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
+    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
+    <div style="margin-top:20px;padding:14px;background:#F0FDF4;border-radius:10px;text-align:left;">
+      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:6px;">📋 キーの取得方法</p>
+      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;">
+        <li><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#1E6FD9;font-weight:700;">aistudio.google.com/apikey</a> を開く</li>
+        <li>Googleアカウントでログイン</li>
+        <li>「Create API key」をクリック</li>
+        <li>表示されたキーをコピーして上に貼り付け</li>
+      </ol>
+    </div>
   </div>
 </div>
 
