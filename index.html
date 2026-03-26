@@ -459,28 +459,42 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
      APIキー設定画面（初回のみ）
 ════════════════════════════════════════ -->
 <div id="setupScreen">
-  <div class="login-card">
+  <div class="login-card" style="max-width:460px;overflow-y:auto;max-height:95vh;">
     <div class="login-logo">🔑</div>
     <div class="login-title">初回設定</div>
-    <div class="login-sub">Gemini APIキーを入力してください</div>
-    <p style="font-size:12px;color:var(--text-muted);margin:-16px 0 20px;text-align:center;line-height:1.6;">
-      このデバイスに<strong>1回だけ</strong>入力すれば<br>次回からはPINのみでOKです
-    </p>
-    <label class="login-label" for="apiKeySetup">Gemini APIキー（無料）</label>
+    <div class="login-sub" style="margin-bottom:20px;">このデバイスに<strong>1回だけ</strong>入力すれば次回はPINのみでOKです</div>
+
+    <!-- Gemini API Key -->
+    <label class="login-label" for="apiKeySetup">① Gemini APIキー（AI文章生成・無料）</label>
     <input type="text" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
-      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
-      onkeydown="if(event.key==='Enter') doSaveApiKey()">
-    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
-    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
-    <div style="margin-top:20px;padding:14px;background:#F0FDF4;border-radius:10px;text-align:left;">
-      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:6px;">📋 キーの取得方法</p>
-      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;">
+      style="font-size:13px;letter-spacing:0.03em;text-align:left;margin-bottom:6px;"
+      onkeydown="if(event.key==='Enter') document.getElementById('notionTokenSetup').focus()">
+    <div style="margin-bottom:16px;padding:10px 12px;background:#F0FDF4;border-radius:8px;text-align:left;">
+      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:4px;">📋 取得方法</p>
+      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;margin:0;">
         <li><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#1E6FD9;font-weight:700;">aistudio.google.com/apikey</a> を開く</li>
-        <li>Googleアカウントでログイン</li>
-        <li>「Create API key」をクリック</li>
+        <li>Googleアカウントでログイン → 「Create API key」</li>
         <li>表示されたキーをコピーして上に貼り付け</li>
       </ol>
     </div>
+
+    <!-- Notion Token -->
+    <label class="login-label" for="notionTokenSetup">② Notion統合トークン（データ保存）</label>
+    <input type="text" class="login-input" id="notionTokenSetup" placeholder="ntn_..."
+      style="font-size:13px;letter-spacing:0.03em;text-align:left;margin-bottom:6px;"
+      onkeydown="if(event.key==='Enter') doSaveApiKey()">
+    <div style="margin-bottom:20px;padding:10px 12px;background:#EFF6FF;border-radius:8px;text-align:left;">
+      <p style="font-size:11px;color:#1E6FD9;font-weight:700;margin-bottom:4px;">📋 取得方法</p>
+      <ol style="font-size:11px;color:#1E40AF;padding-left:16px;line-height:1.8;margin:0;">
+        <li><a href="https://www.notion.so/my-integrations" target="_blank" style="color:#1E6FD9;font-weight:700;">notion.so/my-integrations</a> を開く</li>
+        <li>「新しいインテグレーション」を作成またはクリック</li>
+        <li>「内部インテグレーションシークレット」をコピー</li>
+        <li>Notionのデータベースページで「接続」からインテグレーションを追加</li>
+      </ol>
+    </div>
+
+    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
+    <div class="login-error" id="setupError">❌ 両方のキーを正しく入力してください</div>
   </div>
 </div>
 
@@ -498,7 +512,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">APIキー変更</button>
+      <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">設定変更</button>
       <button class="logout-btn" onclick="doLogout()">ログアウト</button>
     </div>
   </div>
@@ -759,7 +773,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="ps-user-row">
       <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser1"></span><span class="ps-user-name" style="font-size:9pt;">　様</span>
+      <span class="ps-user-name" id="printUser1"></span><span class="ps-user-name">様</span>
       <span class="ps-residence" id="printResidence1"></span>
     </div>
     <div class="ps-vitals">
@@ -820,7 +834,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="ps-user-row">
       <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser2"></span><span class="ps-user-name" style="font-size:9pt;">　様</span>
+      <span class="ps-user-name" id="printUser2"></span><span class="ps-user-name">様</span>
       <span class="ps-residence" id="printResidence2"></span>
     </div>
     <div class="ps-vitals">
@@ -969,7 +983,7 @@ async function callGemini(prompt) {
 async function notionFetch(path, method='GET', body=null) {
   const target = 'https://api.notion.com/v1' + path;
   const headers = {
-    'Authorization': `Bearer ${NOTION_TOKEN}`,
+    'Authorization': `Bearer ${getNotionToken()}`,
     'Content-Type': 'application/json',
     'Notion-Version': '2022-06-28'
   };
@@ -1008,9 +1022,8 @@ async function notionFetch(path, method='GET', body=null) {
   }
 }
 
-// Notion インテグレーションキー（https://www.notion.so/my-integrations で取得）
-// ※ 取得後、ぱわふる安中のメインページでこのインテグレーションに「アクセス許可」を与えること
-const NOTION_TOKEN = "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";
+// Notion トークンはlocalStorageに保存（公開リポジトリに入れると自動失効するため）
+const getNotionToken = () => localStorage.getItem('notion_token') || '';
 
 // 暗証番号（職員のみ共有）
 const PIN_CODE = "0375";
@@ -1051,7 +1064,10 @@ function doLogin() {
   const pin = document.getElementById('pinInput').value.trim();
   if (pin === PIN_CODE) {
     document.getElementById('loginScreen').style.display = 'none';
-    if (!getApiKey()) {
+    if (!getApiKey() || !getNotionToken()) {
+      // 既存値があればセットアップ画面に事前入力
+      document.getElementById('apiKeySetup').value = getApiKey();
+      document.getElementById('notionTokenSetup').value = getNotionToken();
       document.getElementById('setupScreen').style.display = 'flex';
     } else {
       document.getElementById('appScreen').style.display = 'block';
@@ -1066,13 +1082,23 @@ function doLogin() {
 }
 
 function doSaveApiKey() {
-  const key = document.getElementById('apiKeySetup').value.trim();
+  const key    = document.getElementById('apiKeySetup').value.trim();
+  const notion = document.getElementById('notionTokenSetup').value.trim();
+  const errEl  = document.getElementById('setupError');
   if (!key.startsWith('AIza')) {
-    document.getElementById('setupError').style.display = 'block';
-    setTimeout(() => document.getElementById('setupError').style.display = 'none', 2500);
+    errEl.textContent = '❌ GeminiキーはAIzaSy...で始まるキーを入力してください';
+    errEl.style.display = 'block';
+    setTimeout(() => errEl.style.display = 'none', 3000);
+    return;
+  }
+  if (!notion.startsWith('ntn_') && !notion.startsWith('secret_')) {
+    errEl.textContent = '❌ NotionトークンはNotionのインテグレーション画面で取得してください';
+    errEl.style.display = 'block';
+    setTimeout(() => errEl.style.display = 'none', 3000);
     return;
   }
   localStorage.setItem('gemini_api_key', key);
+  localStorage.setItem('notion_token', notion);
   localStorage.removeItem('gemini_model');
   localStorage.removeItem('gemini_models');
   localStorage.removeItem('gemini_skip');
@@ -1089,9 +1115,9 @@ function doLogout() {
 }
 
 function resetApiKey() {
-  localStorage.removeItem('gemini_api_key');
+  document.getElementById('apiKeySetup').value = getApiKey();
+  document.getElementById('notionTokenSetup').value = getNotionToken();
   document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('apiKeySetup').value = '';
   document.getElementById('setupScreen').style.display = 'flex';
 }
 
@@ -1361,7 +1387,7 @@ ${histCtx}
 - 結びは「引き続き見守ってまいります」等で締める
 - 「本日は〜」または「今日は〜」で書き出す
 - 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
-- 利用者名を文中で使う場合は必ず「${selectedUser}様」と敬称をつける
+- 利用者名は文中に含めないこと（名前は連絡帳ヘッダーに別途記載されているため不要）
 - JSONや箇条書きにせず連続した文章として出力する`;
 
   } else {
@@ -1395,7 +1421,7 @@ ${memoInstruction}${histCtx}
 - 結びは「引き続き見守ってまいります」等で締める
 - 「本日は〜」または「今日は〜」で書き出す
 - 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
-- 利用者名を文中で使う場合は必ず「${selectedUser}様」と敬称をつける
+- 利用者名は文中に含めないこと（名前は連絡帳ヘッダーに別途記載されているため不要）
 - JSONや箇条書きにせず連続した文章として出力する`;
   }
 
