@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>ぱわふる安中｜連絡帳入力</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -637,51 +640,54 @@ async function listGeminiModels() {
   return sorted;
 }
 
-async function callGemini(prompt) {
-  // レート制限で失敗したモデルを除外しながら順に試す
-  const skipped = JSON.parse(localStorage.getItem('gemini_skip') || '[]');
-  let models = JSON.parse(localStorage.getItem('gemini_models') || 'null');
+async function geminiRequest(model, prompt) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 600, temperature: 0.7, topP: 0.9 }
+      })
+    }
+  );
+  return res.json();
+}
 
+async function callGemini(prompt) {
+  let models = JSON.parse(localStorage.getItem('gemini_models') || 'null');
   if (!models) {
     models = await listGeminiModels();
     if (!models.length) throw new Error('このAPIキーで使えるモデルがありません');
     localStorage.setItem('gemini_models', JSON.stringify(models));
   }
 
-  const candidates = models.filter(m => !skipped.includes(m));
-  if (!candidates.length) {
-    // 全モデルがスキップ済み → リセットして再試行
-    localStorage.removeItem('gemini_skip');
-    throw new Error('全モデルでレート制限に達しました。しばらく時間をおいて再試行してください。');
-  }
+  for (const model of models) {
+    // 1回目の試行
+    let data = await geminiRequest(model, prompt);
 
-  for (const model of candidates) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 600, temperature: 0.7, topP: 0.9 }
-        })
-      }
-    );
-    const data = await res.json();
-
+    // レート制限の場合、APIが返す待機時間で自動リトライ
     if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-      // このモデルはスキップして次へ
-      const skip = JSON.parse(localStorage.getItem('gemini_skip') || '[]');
-      if (!skip.includes(model)) skip.push(model);
-      localStorage.setItem('gemini_skip', JSON.stringify(skip));
-      continue;
+      const detail = (data.error?.details || []).find(d => d.retryDelay);
+      const delaySec = detail ? parseInt(detail.retryDelay) : 60;
+      showLoading(`制限中…${delaySec}秒待機してリトライします`, `モデル: ${model}`);
+      await new Promise(r => setTimeout(r, delaySec * 1000));
+      data = await geminiRequest(model, prompt);
     }
-    if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
+
+    // 2回目もレート制限 → 次のモデルへ
+    if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') continue;
+
+    if (data.error) throw new Error(`${data.error.status}: ${data.error.message}`);
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
     if (text) {
-      localStorage.setItem('gemini_model', model); // 成功したモデルを記録
+      localStorage.setItem('gemini_model', model);
       return text;
     }
   }
-  throw new Error('全モデルでレート制限に達しました。しばらく時間をおいて再試行してください。');
+
+  // 全モデル失敗 → モデル一覧をリセットして次回再検出
+  localStorage.removeItem('gemini_models');
+  throw new Error('全モデルでリクエスト制限に達しました。\nしばらく時間をおいてから再試行してください。\n（Gemini無料枠の1日上限に達した可能性があります）');
 }
 
 // ── Notion 直接API（CORSプロキシ経由）──────────────────
