@@ -764,17 +764,30 @@ async function callGemini(prompt) {
 // ── Notion 直接API（CORSプロキシ経由）──────────────────
 async function notionFetch(path, method='GET', body=null) {
   const target = 'https://api.notion.com/v1' + path;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000); // 12秒でタイムアウト
+
   const opts = {
     method,
     headers: {
       'Authorization': `Bearer ${NOTION_TOKEN}`,
       'Content-Type': 'application/json',
       'Notion-Version': '2022-06-28'
-    }
+    },
+    signal: controller.signal
   };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(target), opts);
-  return res.json();
+
+  try {
+    const res = await fetch('https://corsproxy.io/?' + target, opts);
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('接続タイムアウト（12秒）。ネットワークまたはCORSプロキシの問題です。');
+    throw e;
+  }
 }
 
 // Notion インテグレーションキー（https://www.notion.so/my-integrations で取得）
@@ -1230,7 +1243,7 @@ async function saveToNotion(auto = false) {
     'メモ':     { rich_text: toRichText(memoFull) }
   };
 
-  if (!auto) showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
+  if (!auto) showLoading('Notionに保存中...', '最大12秒かかります');
   try {
     const data = await notionFetch('/pages', 'POST', {
       parent: { database_id: RENRAKUCHO_DB_ID },
@@ -1241,10 +1254,10 @@ async function saveToNotion(auto = false) {
       showToast(auto ? '✅ Notionに自動保存しました！' : '✅ Notionに保存しました！');
       if (!auto) setTimeout(resetForm, 1800);
     } else {
-      throw new Error(data.message || JSON.stringify(data).slice(0,100));
+      throw new Error(data.message || data.code || JSON.stringify(data).slice(0, 120));
     }
   } catch(e) {
-    if (!auto) hideLoading();
+    hideLoading(); // auto/手動に関わらず必ず閉じる
     if (auto) {
       showToast('⚠️ 自動保存に失敗 → 手動で「Notion保存」を押してください');
     } else {
