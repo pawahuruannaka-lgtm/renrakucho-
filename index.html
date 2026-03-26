@@ -184,6 +184,24 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 /* ─── 食事 ─── */
 .meal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 @media (min-width: 640px) { .meal-grid { grid-template-columns: repeat(8, 1fr); } }
+
+/* ─── 服薬チェック ─── */
+.med-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.med-btn {
+  padding: 9px 20px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: white; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .15s; color: var(--text-muted);
+}
+.med-btn:active { transform: scale(.95); }
+.med-btn.selected { border-color: var(--success); background: var(--success-light); color: var(--success); }
+.med-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 52px; }
+.med-input {
+  flex: 1; min-width: 140px; padding: 9px 12px; border: 2px solid var(--border);
+  border-radius: var(--radius-sm); font-family: 'Noto Sans Jo', sans-serif; font-size: 14px;
+  outline: none; transition: border-color .15s;
+}
+.med-input:focus { border-color: var(--primary); }
+
 .meal-btn {
   padding: 9px 4px; border: 2px solid var(--border); border-radius: var(--radius-sm);
   background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
@@ -526,6 +544,25 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
             </div>
           </div>
 
+          <!-- 服薬チェック -->
+          <div class="card">
+            <div class="card-header">💊 服薬</div>
+            <div class="card-body">
+              <div class="med-row">
+                <span class="med-label">昼食前</span>
+                <button class="med-btn" id="medBeforeBtn" onclick="toggleMed('before')">服薬済み</button>
+              </div>
+              <div class="med-row">
+                <span class="med-label">昼食後</span>
+                <button class="med-btn" id="medAfterBtn" onclick="toggleMed('after')">服薬済み</button>
+              </div>
+              <div class="med-row">
+                <span class="med-label">頓服</span>
+                <input type="text" class="med-input" id="medPrnInput" placeholder="薬品名・内容を記入">
+              </div>
+            </div>
+          </div>
+
           <!-- メモ（箇条書き対応） -->
           <div class="card">
             <div class="card-header">💬 メモ・特記事項 <span class="badge badge-cyan">箇条書き可</span></div>
@@ -724,6 +761,8 @@ let selectedUser       = null;
 let selectedConditions = [];
 let selectedActivities = [];
 let selectedMeal       = null;
+let medBefore          = false;  // 昼食前服薬
+let medAfter           = false;  // 昼食後服薬
 let historyData        = [];
 let recheckOpen        = false;
 let userList           = [];
@@ -932,6 +971,16 @@ function selectMeal(el, val) {
   el.classList.add('selected');
 }
 
+function toggleMed(type) {
+  if (type === 'before') {
+    medBefore = !medBefore;
+    document.getElementById('medBeforeBtn').classList.toggle('selected', medBefore);
+  } else {
+    medAfter = !medAfter;
+    document.getElementById('medAfterBtn').classList.toggle('selected', medAfter);
+  }
+}
+
 function toggleHistory() {
   const btn  = document.getElementById('historyToggle');
   const body = document.getElementById('historyBody');
@@ -1067,6 +1116,7 @@ ${histCtx}
 ${residenceInst2 ? residenceInst2 + '\n' : ''}【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
 【本日の活動】${selectedActivities.length ? selectedActivities.join('、') : '記録なし'}
 【食事摂取量】${selectedMeal || '記録なし'}
+【服薬】昼食前:${medBefore ? '服薬済み' : '未'} / 昼食後:${medAfter ? '服薬済み' : '未'}${document.getElementById('medPrnInput')?.value.trim() ? ' / 頓服:' + document.getElementById('medPrnInput').value.trim() : ''}
 ${memoInstruction}${histCtx}
 
 【文章作成のルール】
@@ -1121,10 +1171,18 @@ async function saveToNotion() {
   const toMultiSelect = str => str ? str.split(/[,、・]/).map(s=>s.trim()).filter(Boolean).map(name=>({name})) : [];
   const toRichText   = str => str ? [{ type:'text', text:{ content: str } }] : [];
 
+  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
+  const medText = [
+    medBefore ? '昼食前:済' : '',
+    medAfter  ? '昼食後:済' : '',
+    prn       ? `頓服:${prn}` : ''
+  ].filter(Boolean).join(' / ');
+
   const memoFull = [
-    vital1 ? `【バイタル】${vital1}` : '',
-    vital2 ? `【再検バイタル】${vital2}` : '',
-    memo    ? `【連絡帳】${memo}` : ''
+    vital1   ? `【バイタル】${vital1}` : '',
+    vital2   ? `【再検バイタル】${vital2}` : '',
+    medText  ? `【服薬】${medText}` : '',
+    memo     ? `【連絡帳】${memo}` : ''
   ].filter(Boolean).join('\n');
 
   const properties = {
@@ -1177,6 +1235,10 @@ async function copyText() {
 // ══════════════════════════════════════════════
 function resetForm() {
   selectedUser=null; selectedConditions=[]; selectedActivities=[]; selectedMeal=null; historyData=[];
+  medBefore=false; medAfter=false;
+  document.getElementById('medBeforeBtn').classList.remove('selected');
+  document.getElementById('medAfterBtn').classList.remove('selected');
+  document.getElementById('medPrnInput').value = '';
   document.querySelectorAll('.user-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('.chip').forEach(c=>{c.className='chip';});
   document.querySelectorAll('.meal-btn').forEach(b=>b.classList.remove('selected'));
