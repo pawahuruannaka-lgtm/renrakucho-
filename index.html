@@ -755,7 +755,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="ps-user-row">
       <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser1"></span>
+      <span class="ps-user-name" id="printUser1"></span><span class="ps-user-name" style="font-size:9pt;">　様</span>
       <span class="ps-residence" id="printResidence1"></span>
     </div>
     <div class="ps-vitals">
@@ -816,7 +816,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="ps-user-row">
       <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser2"></span>
+      <span class="ps-user-name" id="printUser2"></span><span class="ps-user-name" style="font-size:9pt;">　様</span>
       <span class="ps-residence" id="printResidence2"></span>
     </div>
     <div class="ps-vitals">
@@ -971,35 +971,34 @@ async function notionFetch(path, method='GET', body=null) {
   };
   const bodyStr = body ? JSON.stringify(body) : null;
 
-  // 複数のCORSプロキシを順番に試す
+  // POST+認証ヘッダーに対応している実績のあるCORSプロキシ
   const proxies = [
-    'https://corsproxy.io/?',
-    'https://proxy.cors.sh/',
-    'https://corsproxy.io/?url=',
+    { url: 'https://corsproxy.io/?',                      encode: false },
+    { url: 'https://api.cors.lol/?url=',                  encode: true  },
+    { url: 'https://cors-proxy.fringe.zone/',              encode: false },
   ];
 
-  let lastError = null;
-  for (const proxy of proxies) {
-    const url = proxy.endsWith('=')
-      ? proxy + encodeURIComponent(target)
-      : proxy + target;
+  const errors = [];
+  for (const { url: proxyBase, encode } of proxies) {
+    const proxyUrl = encode ? proxyBase + encodeURIComponent(target) : proxyBase + target;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), 15000);
     try {
-      const res = await fetch(url, { method, headers, body: bodyStr, signal: controller.signal });
+      const res = await fetch(proxyUrl, { method, headers, body: bodyStr, signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 120)}`);
+        throw new Error(`HTTP ${res.status} (${proxyBase.replace('https://','').split('/')[0]}): ${errText.slice(0, 80)}`);
       }
       return await res.json();
     } catch(e) {
       clearTimeout(timer);
-      lastError = e.name === 'AbortError' ? new Error(`タイムアウト (${proxy})`) : e;
+      const msg = e.name === 'AbortError' ? `タイムアウト(${proxyBase.replace('https://','').split('/')[0]})` : e.message;
+      errors.push(msg);
       // 次のプロキシを試す
     }
   }
-  throw new Error(`Notion APIへの接続に失敗しました。\n詳細: ${lastError?.message || '不明なエラー'}`);
+  throw new Error(`Notion API接続失敗。全プロキシ試行済み:\n${errors.map((e,i)=>`[${i+1}] ${e}`).join('\n')}`);
 }
 
 // Notion インテグレーションキー（https://www.notion.so/my-integrations で取得）
@@ -1355,6 +1354,7 @@ ${histCtx}
 - 結びは「引き続き見守ってまいります」等で締める
 - 「本日は〜」または「今日は〜」で書き出す
 - 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
+- 利用者名を文中で使う場合は必ず「${selectedUser}様」と敬称をつける
 - JSONや箇条書きにせず連続した文章として出力する`;
 
   } else {
@@ -1388,6 +1388,7 @@ ${memoInstruction}${histCtx}
 - 結びは「引き続き見守ってまいります」等で締める
 - 「本日は〜」または「今日は〜」で書き出す
 - 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
+- 利用者名を文中で使う場合は必ず「${selectedUser}様」と敬称をつける
 - JSONや箇条書きにせず連続した文章として出力する`;
   }
 
