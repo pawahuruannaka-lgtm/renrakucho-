@@ -807,28 +807,50 @@ async function initApp() {
 //  ※ 利用者が増減した場合はここを更新してください
 // ══════════════════════════════════════════════
 const USERS_LIST = [
-  "岡野 久子",
-  "佐藤 嵩彦",
-  "櫻井憲二",
-  "横塚時也",
-  "櫻井 麻弥",
-  "安達 愛香",
-  "山田 美穂",
-  "金井 直美",
-  "石井 美弥子",
-  "岡田 正末",
-  "富田 蓮人",
-  "柴山 美香",
-  "丸山 登志子",
-  "堀川 明美",
-  "堀米亜希子",
-  "萩原 奈津樹",
-  "石原皇太"
+  "岡野 久子", "佐藤 嵩彦", "櫻井憲二", "横塚時也", "櫻井 麻弥",
+  "安達 愛香", "山田 美穂", "金井 直美", "石井 美弥子", "岡田 正末",
+  "富田 蓮人", "柴山 美香", "丸山 登志子", "堀川 明美", "堀米亜希子",
+  "萩原 奈津樹", "石原皇太"
 ];
+
+// 利用者ごとの居住区分（Notionから取得）
+let usersResidence = {};
+
+async function loadUsersResidence() {
+  try {
+    const data = await notionFetch(
+      `/databases/${USERS_DB_ID}/query`, 'POST',
+      { page_size: 50 }
+    );
+    for (const page of (data.results || [])) {
+      const props = page.properties || {};
+      const name = (props['氏名 / 個別支援計画']?.title || []).map(t => t.plain_text).join('').trim();
+      const residence = props['居住']?.select?.name || null;
+      if (name && residence) usersResidence[name] = residence;
+    }
+  } catch (e) {
+    // 取得失敗時はプロンプトに居住情報を含めない
+  }
+}
+
+function getResidenceInstruction(userName) {
+  const r = Object.entries(usersResidence).find(([k]) => userName.includes(k.replace(/\s/g,'')) || k.replace(/\s/g,'').includes(userName.replace(/\s/g,'')))?.[1]
+           || usersResidence[userName] || null;
+  if (!r) return '';
+  if (r === '自宅') {
+    return `【送付先】ご家族（自宅）
+- ご家族が直接受け取る連絡帳として、温かく親しみやすい文体で`;
+  } else {
+    return `【送付先】${r}（グループホーム）経由でご家族へ
+- グループホームのスタッフとご家族の両方が読む想定で、丁寧かつ分かりやすい文体で
+- 「グループホームのスタッフの皆様にもお伝えいただければ幸いです」等の一文は不要`;
+  }
+}
 
 async function loadUsersFromNotion() {
   userList = USERS_LIST;
   renderUserButtons(USERS_LIST);
+  loadUsersResidence(); // 居住情報をバックグラウンドで取得
 }
 
 function showManualInput() {
@@ -1004,13 +1026,14 @@ async function generateText() {
     const bulletText = document.getElementById('bulletInput').value.trim();
     if (!bulletText) { showToast('⚠️ 箇条書きを入力してください'); return; }
 
+    const residenceInst1 = getResidenceInstruction(selectedUser);
     prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
 以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
 
 【利用者】${selectedUser}
 【実施日】${fmtDate(date)}
 【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
-【今日の様子（箇条書き）】
+${residenceInst1 ? residenceInst1 + '\n' : ''}【今日の様子（箇条書き）】
 ${bulletText}
 ${histCtx}
 
@@ -1034,13 +1057,14 @@ ${histCtx}
       ? '【担当者メモ（箇条書き）】以下の箇条書きを自然な文章に展開して組み込むこと：\n' + memo
       : `【担当者メモ】${memo || 'なし'}`;
 
+    const residenceInst2 = getResidenceInstruction(selectedUser);
     prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
 以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
 
 【利用者】${selectedUser}
 【実施日】${fmtDate(date)}
 【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
-【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
+${residenceInst2 ? residenceInst2 + '\n' : ''}【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
 【本日の活動】${selectedActivities.length ? selectedActivities.join('、') : '記録なし'}
 【食事摂取量】${selectedMeal || '記録なし'}
 ${memoInstruction}${histCtx}
