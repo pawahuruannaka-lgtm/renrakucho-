@@ -459,42 +459,50 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
      APIキー設定画面（初回のみ）
 ════════════════════════════════════════ -->
 <div id="setupScreen">
-  <div class="login-card" style="max-width:460px;overflow-y:auto;max-height:95vh;">
+  <div class="login-card">
     <div class="login-logo">🔑</div>
     <div class="login-title">初回設定</div>
-    <div class="login-sub" style="margin-bottom:20px;">このデバイスに<strong>1回だけ</strong>入力すれば次回はPINのみでOKです</div>
-
-    <!-- Gemini API Key -->
-    <label class="login-label" for="apiKeySetup">① Gemini APIキー（AI文章生成・無料）</label>
+    <div class="login-sub">Gemini APIキーを入力してください</div>
+    <p style="font-size:12px;color:var(--text-muted);margin:-16px 0 20px;text-align:center;line-height:1.6;">
+      このデバイスに<strong>1回だけ</strong>入力すれば<br>次回からはPINのみでOKです
+    </p>
+    <label class="login-label" for="apiKeySetup">Gemini APIキー（無料）</label>
     <input type="text" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
-      style="font-size:13px;letter-spacing:0.03em;text-align:left;margin-bottom:6px;"
-      onkeydown="if(event.key==='Enter') document.getElementById('notionTokenSetup').focus()">
-    <div style="margin-bottom:16px;padding:10px 12px;background:#F0FDF4;border-radius:8px;text-align:left;">
-      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:4px;">📋 取得方法</p>
-      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;margin:0;">
+      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
+      onkeydown="if(event.key==='Enter') doSaveApiKey()">
+    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
+    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
+    <div style="margin-top:20px;padding:14px;background:#F0FDF4;border-radius:10px;text-align:left;">
+      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:6px;">📋 キーの取得方法</p>
+      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;">
         <li><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#1E6FD9;font-weight:700;">aistudio.google.com/apikey</a> を開く</li>
-        <li>Googleアカウントでログイン → 「Create API key」</li>
+        <li>Googleアカウントでログイン</li>
+        <li>「Create API key」をクリック</li>
         <li>表示されたキーをコピーして上に貼り付け</li>
       </ol>
     </div>
+  </div>
+</div>
 
-    <!-- Notion Token -->
-    <label class="login-label" for="notionTokenSetup">② Notion統合トークン（データ保存）</label>
-    <input type="text" class="login-input" id="notionTokenSetup" placeholder="ntn_..."
-      style="font-size:13px;letter-spacing:0.03em;text-align:left;margin-bottom:6px;"
-      onkeydown="if(event.key==='Enter') doSaveApiKey()">
-    <div style="margin-bottom:20px;padding:10px 12px;background:#EFF6FF;border-radius:8px;text-align:left;">
-      <p style="font-size:11px;color:#1E6FD9;font-weight:700;margin-bottom:4px;">📋 取得方法</p>
-      <ol style="font-size:11px;color:#1E40AF;padding-left:16px;line-height:1.8;margin:0;">
-        <li><a href="https://www.notion.so/my-integrations" target="_blank" style="color:#1E6FD9;font-weight:700;">notion.so/my-integrations</a> を開く</li>
-        <li>「新しいインテグレーション」を作成またはクリック</li>
-        <li>「内部インテグレーションシークレット」をコピー</li>
-        <li>Notionのデータベースページで「接続」からインテグレーションを追加</li>
-      </ol>
+<!-- Notion設定モーダル -->
+<div id="notionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">⬛ Notion接続設定</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Notionの統合トークンを入力してください</div>
+    <label class="login-label" for="notionTokenInput">統合トークン（ntn_…）</label>
+    <input type="text" class="login-input" id="notionTokenInput" placeholder="ntn_..."
+      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
+      onkeydown="if(event.key==='Enter') saveNotionToken()">
+    <div style="margin-bottom:14px;padding:10px 12px;background:#EFF6FF;border-radius:8px;font-size:11px;color:#1E40AF;line-height:1.8;">
+      <strong>取得方法：</strong><a href="https://www.notion.so/my-integrations" target="_blank" style="color:#1E6FD9;font-weight:700;">notion.so/my-integrations</a> →「シークレット」を再発行してコピー
     </div>
-
-    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
-    <div class="login-error" id="setupError">❌ 両方のキーを正しく入力してください</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('notionModal').style.display='none'"
+        style="flex:1;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">キャンセル</button>
+      <button onclick="saveNotionToken()"
+        style="flex:1;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">保存</button>
+    </div>
+    <div id="notionModalError" style="display:none;margin-top:10px;color:var(--danger);font-size:12px;font-weight:600;"></div>
   </div>
 </div>
 
@@ -512,7 +520,8 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">設定変更</button>
+      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#333;">Notion設定</button>
+      <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">APIキー変更</button>
       <button class="logout-btn" onclick="doLogout()">ログアウト</button>
     </div>
   </div>
@@ -1064,10 +1073,7 @@ function doLogin() {
   const pin = document.getElementById('pinInput').value.trim();
   if (pin === PIN_CODE) {
     document.getElementById('loginScreen').style.display = 'none';
-    if (!getApiKey() || !getNotionToken()) {
-      // 既存値があればセットアップ画面に事前入力
-      document.getElementById('apiKeySetup').value = getApiKey();
-      document.getElementById('notionTokenSetup').value = getNotionToken();
+    if (!getApiKey()) {
       document.getElementById('setupScreen').style.display = 'flex';
     } else {
       document.getElementById('appScreen').style.display = 'block';
@@ -1082,29 +1088,40 @@ function doLogin() {
 }
 
 function doSaveApiKey() {
-  const key    = document.getElementById('apiKeySetup').value.trim();
-  const notion = document.getElementById('notionTokenSetup').value.trim();
-  const errEl  = document.getElementById('setupError');
+  const key   = document.getElementById('apiKeySetup').value.trim();
+  const errEl = document.getElementById('setupError');
   if (!key.startsWith('AIza')) {
-    errEl.textContent = '❌ GeminiキーはAIzaSy...で始まるキーを入力してください';
+    errEl.textContent = '❌ AIzaSy...で始まるキーを入力してください';
     errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
-    return;
-  }
-  if (!notion.startsWith('ntn_') && !notion.startsWith('secret_')) {
-    errEl.textContent = '❌ NotionトークンはNotionのインテグレーション画面で取得してください';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 3000);
+    setTimeout(() => errEl.style.display = 'none', 2500);
     return;
   }
   localStorage.setItem('gemini_api_key', key);
-  localStorage.setItem('notion_token', notion);
   localStorage.removeItem('gemini_model');
   localStorage.removeItem('gemini_models');
   localStorage.removeItem('gemini_skip');
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   initApp();
+}
+
+function openNotionModal() {
+  document.getElementById('notionTokenInput').value = getNotionToken();
+  document.getElementById('notionModalError').style.display = 'none';
+  document.getElementById('notionModal').style.display = 'flex';
+}
+
+function saveNotionToken() {
+  const token = document.getElementById('notionTokenInput').value.trim();
+  const errEl = document.getElementById('notionModalError');
+  if (!token.startsWith('ntn_') && !token.startsWith('secret_')) {
+    errEl.textContent = '❌ ntn_ または secret_ で始まるトークンを入力してください';
+    errEl.style.display = 'block';
+    return;
+  }
+  localStorage.setItem('notion_token', token);
+  document.getElementById('notionModal').style.display = 'none';
+  showToast('✅ Notionトークンを保存しました');
 }
 
 function doLogout() {
@@ -1115,8 +1132,8 @@ function doLogout() {
 }
 
 function resetApiKey() {
-  document.getElementById('apiKeySetup').value = getApiKey();
-  document.getElementById('notionTokenSetup').value = getNotionToken();
+  localStorage.removeItem('gemini_api_key');
+  document.getElementById('apiKeySetup').value = '';
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('setupScreen').style.display = 'flex';
 }
