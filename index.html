@@ -646,7 +646,7 @@ async function geminiRequest(model, prompt) {
     { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 600, temperature: 0.7, topP: 0.9 }
+        generationConfig: { maxOutputTokens: 200, temperature: 0.7, topP: 0.9 }
       })
     }
   );
@@ -1040,7 +1040,7 @@ ${histCtx}
 【文章作成のルール】
 - 上記の箇条書きを自然な保護者向け文章に変換する
 - 利用者の家族が読む連絡帳として丁寧で温かみのある文体
-- 200〜350字程度
+- 70〜120字程度
 - バイタル数値は文中に含めず状態として表現する
 - 再検がある場合はその旨を自然に一文で盛り込む
 - 箇条書きの内容を漏れなく、しかし自然な流れで組み込む
@@ -1071,7 +1071,7 @@ ${memoInstruction}${histCtx}
 
 【文章作成のルール】
 - 利用者の家族が読む連絡帳として丁寧で温かみのある文体
-- 200〜350字程度
+- 70〜120字程度
 - 体調 → 活動 → 食事 の順で自然な流れ
 - バイタル数値は文中に含めず状態として表現する
 - 再検がある場合はその旨を自然に一文で盛り込む
