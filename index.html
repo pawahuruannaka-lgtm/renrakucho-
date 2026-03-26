@@ -616,17 +616,24 @@ const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
 // ── Gemini API 呼び出し ──────────────────────────────
 async function callGemini(prompt, retries = 3) {
   for (let i = 0; i < retries; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, 4000 * i)); // 4秒・8秒と待機
+    if (i > 0) await new Promise(r => setTimeout(r, 5000 * i)); // 5秒・10秒と待機
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getApiKey()}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 600,   // 連絡帳文章は350字程度なので十分
+            temperature: 0.7,       // 自然な文体を保ちつつ安定させる
+            topP: 0.9
+          }
+        })
+      }
     );
     const data = await res.json();
-    // レート制限(429)は待機してリトライ
     if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
       if (i < retries - 1) continue;
-      throw new Error('リクエストが混み合っています。しばらく待ってから再試行してください。');
+      throw new Error('リクエスト制限に達しました。1分ほど待ってから再試行してください。');
     }
     if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
