@@ -282,6 +282,22 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 .btn-regen  { background: var(--primary-light); color: var(--primary); }
 .btn-copy   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 .btn-notion { background: #111; color: #fff; }
+.btn-print  { background: #16A34A; color: #fff; }
+
+/* ─── 印刷レイアウト ─── */
+#printArea { display: none; }
+@media print {
+  body > * { display: none !important; }
+  #printArea { display: block !important; font-family: 'Noto Sans JP', sans-serif; padding: 20mm; }
+  .print-title { font-size: 18pt; font-weight: 700; text-align: center; margin-bottom: 4mm; }
+  .print-sub   { font-size: 10pt; text-align: center; color: #555; margin-bottom: 8mm; }
+  .print-meta  { border-top: 1.5pt solid #000; border-bottom: 1pt solid #ccc; padding: 4mm 0; margin-bottom: 8mm; }
+  .print-meta table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+  .print-meta td { padding: 2mm 4mm; }
+  .print-meta td:first-child { width: 28mm; font-weight: 700; color: #333; }
+  .print-body  { font-size: 12pt; line-height: 2; white-space: pre-wrap; border: 1pt solid #ccc; padding: 6mm; border-radius: 2mm; min-height: 40mm; }
+  .print-footer{ margin-top: 12mm; font-size: 9pt; color: #888; text-align: right; border-top: 0.5pt solid #ccc; padding-top: 3mm; }
+}
 
 /* ─── 過去記録 ─── */
 .history-toggle {
@@ -625,13 +641,31 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
         <div class="result-actions">
           <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
           <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
-          <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notionに保存</button>
+          <button class="action-btn btn-print" onclick="printResult()">🖨️ 印刷</button>
+          <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notion保存</button>
         </div>
       </div>
 
     </div>
   </div>
 </div><!-- /appScreen -->
+
+<!-- 印刷専用エリア（画面非表示・印刷時のみ表示） -->
+<div id="printArea">
+  <div class="print-title">連　絡　帳</div>
+  <div class="print-sub">ぱわふる安中　生活介護事業所</div>
+  <div class="print-meta">
+    <table>
+      <tr><td>利用者氏名</td><td id="printUser"></td></tr>
+      <tr><td>実　施　日</td><td id="printDate"></td></tr>
+      <tr><td>居　　　住</td><td id="printResidence"></td></tr>
+      <tr><td>バイタル</td><td id="printVital"></td></tr>
+      <tr><td>服　　　薬</td><td id="printMed"></td></tr>
+    </table>
+  </div>
+  <div class="print-body" id="printText"></div>
+  <div class="print-footer">生成日時：<span id="printTimestamp"></span>　／　ぱわふる安中</div>
+</div>
 
 <!-- ローディング -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -1141,7 +1175,9 @@ ${memoInstruction}${histCtx}
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
     rc.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    showToast('✨ 文章を生成しました！');
+    showToast('✨ 生成完了！Notionに自動保存中...');
+    // 自動保存（非同期・失敗してもUIはブロックしない）
+    saveToNotion(true);
   } catch(e) {
     hideLoading();
     document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
@@ -1153,7 +1189,7 @@ ${memoInstruction}${histCtx}
 // ══════════════════════════════════════════════
 //  Notion保存
 // ══════════════════════════════════════════════
-async function saveToNotion() {
+async function saveToNotion(auto = false) {
   if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
 
   const memo   = document.getElementById('resultText').textContent;
@@ -1194,23 +1230,27 @@ async function saveToNotion() {
     'メモ':     { rich_text: toRichText(memoFull) }
   };
 
+  if (!auto) showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
   try {
     const data = await notionFetch('/pages', 'POST', {
       parent: { database_id: RENRAKUCHO_DB_ID },
       properties
     });
-    hideLoading();
+    if (!auto) hideLoading();
     if (data.id) {
-      showToast('✅ Notionに保存しました！');
-      setTimeout(resetForm, 1800);
+      showToast(auto ? '✅ Notionに自動保存しました！' : '✅ Notionに保存しました！');
+      if (!auto) setTimeout(resetForm, 1800);
     } else {
-      const errMsg = data.message || JSON.stringify(data).slice(0,100);
-      throw new Error(errMsg);
+      throw new Error(data.message || JSON.stringify(data).slice(0,100));
     }
   } catch(e) {
-    hideLoading();
-    document.getElementById('resultText').textContent += `\n\n⚠️ Notion保存エラー:\n${e.message}`;
-    showToast('❌ 保存に失敗しました');
+    if (!auto) hideLoading();
+    if (auto) {
+      showToast('⚠️ 自動保存に失敗 → 手動で「Notion保存」を押してください');
+    } else {
+      document.getElementById('resultText').textContent += `\n\n⚠️ Notion保存エラー:\n${e.message}`;
+      showToast('❌ 保存に失敗しました');
+    }
   }
 }
 
@@ -1228,6 +1268,32 @@ async function copyText() {
     window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
     showToast('📋 テキストを選択しました');
   }
+}
+
+// ══════════════════════════════════════════════
+//  印刷
+// ══════════════════════════════════════════════
+function printResult() {
+  const vital1 = buildVital(
+    document.getElementById('temp').value,
+    document.getElementById('bp').value,
+    document.getElementById('pulse').value
+  );
+  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
+  const medParts = [
+    medBefore ? '昼食前:済' : '',
+    medAfter  ? '昼食後:済' : '',
+    prn       ? `頓服:${prn}` : ''
+  ].filter(Boolean);
+
+  document.getElementById('printUser').textContent       = selectedUser || '';
+  document.getElementById('printDate').textContent       = fmtDate(document.getElementById('dateInput').value);
+  document.getElementById('printResidence').textContent  = usersResidence[selectedUser] || '';
+  document.getElementById('printVital').textContent      = vital1 || '記録なし';
+  document.getElementById('printMed').textContent        = medParts.length ? medParts.join(' / ') : '記録なし';
+  document.getElementById('printText').textContent       = document.getElementById('resultText').textContent;
+  document.getElementById('printTimestamp').textContent  = new Date().toLocaleString('ja-JP');
+  window.print();
 }
 
 // ══════════════════════════════════════════════
