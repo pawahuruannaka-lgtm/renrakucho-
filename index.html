@@ -614,39 +614,48 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
 
 // ── Gemini API 呼び出し ──────────────────────────────
-// APIキーで使えるモデルをListModels APIで自動検出してキャッシュする
-async function getGeminiModel() {
-  const cached = localStorage.getItem('gemini_model');
-  if (cached) return cached;
-
+// APIキーで使えるモデル一覧を取得（優先順位付き）
+async function listGeminiModels() {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models?key=${getApiKey()}`
   );
   const data = await res.json();
   if (data.error) throw new Error(`APIキーエラー: ${data.error.message}`);
 
-  // generateContentに対応しているFlash系モデルを優先して選ぶ
-  const prefer = ['flash-lite', 'flash-8b', 'flash', 'pro'];
-  const models = (data.models || [])
+  const all = (data.models || [])
     .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map(m => m.name.replace('models/', ''));
 
-  let chosen = null;
-  for (const p of prefer) {
-    chosen = models.find(m => m.includes(p));
-    if (chosen) break;
+  // flash-lite → flash-8b → flash → pro の優先順で並べ替え
+  const order = ['flash-lite', 'flash-8b', 'flash', 'pro'];
+  const sorted = [];
+  for (const p of order) {
+    const found = all.filter(m => m.includes(p) && !sorted.includes(m));
+    sorted.push(...found);
   }
-  if (!chosen) chosen = models[0];
-  if (!chosen) throw new Error('このAPIキーで使えるモデルがありません');
-
-  localStorage.setItem('gemini_model', chosen);
-  return chosen;
+  for (const m of all) { if (!sorted.includes(m)) sorted.push(m); }
+  return sorted;
 }
 
 async function callGemini(prompt) {
-  const model = await getGeminiModel();
-  for (let retry = 0; retry < 3; retry++) {
-    if (retry > 0) await new Promise(r => setTimeout(r, 5000 * retry));
+  // レート制限で失敗したモデルを除外しながら順に試す
+  const skipped = JSON.parse(localStorage.getItem('gemini_skip') || '[]');
+  let models = JSON.parse(localStorage.getItem('gemini_models') || 'null');
+
+  if (!models) {
+    models = await listGeminiModels();
+    if (!models.length) throw new Error('このAPIキーで使えるモデルがありません');
+    localStorage.setItem('gemini_models', JSON.stringify(models));
+  }
+
+  const candidates = models.filter(m => !skipped.includes(m));
+  if (!candidates.length) {
+    // 全モデルがスキップ済み → リセットして再試行
+    localStorage.removeItem('gemini_skip');
+    throw new Error('全モデルでレート制限に達しました。しばらく時間をおいて再試行してください。');
+  }
+
+  for (const model of candidates) {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -657,15 +666,22 @@ async function callGemini(prompt) {
       }
     );
     const data = await res.json();
+
     if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-      if (retry < 2) continue;
-      throw new Error('リクエスト制限に達しました。1分ほど待ってから再試行してください。');
+      // このモデルはスキップして次へ
+      const skip = JSON.parse(localStorage.getItem('gemini_skip') || '[]');
+      if (!skip.includes(model)) skip.push(model);
+      localStorage.setItem('gemini_skip', JSON.stringify(skip));
+      continue;
     }
     if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-    if (text) return text;
-    throw new Error('空のレスポンス');
+    if (text) {
+      localStorage.setItem('gemini_model', model); // 成功したモデルを記録
+      return text;
+    }
   }
+  throw new Error('全モデルでレート制限に達しました。しばらく時間をおいて再試行してください。');
 }
 
 // ── Notion 直接API（CORSプロキシ経由）──────────────────
@@ -747,7 +763,9 @@ function doSaveApiKey() {
     return;
   }
   localStorage.setItem('gemini_api_key', key);
-  localStorage.removeItem('gemini_model'); // モデルキャッシュをリセット
+  localStorage.removeItem('gemini_model');
+  localStorage.removeItem('gemini_models');
+  localStorage.removeItem('gemini_skip');
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   initApp();
