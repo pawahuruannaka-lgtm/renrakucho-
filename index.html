@@ -332,13 +332,13 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     <div class="login-title">初回設定</div>
     <div class="login-sub">APIキーを入力してください</div>
     <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;text-align:center;">このデバイスに1回だけ入力すれば次回から不要です</p>
-    <label class="login-label" for="apiKeySetup">Anthropic APIキー</label>
-    <input type="password" class="login-input" id="apiKeySetup" placeholder="sk-ant-api03-..."
+    <label class="login-label" for="apiKeySetup">Gemini APIキー</label>
+    <input type="password" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
       style="font-size:12px;" onkeydown="if(event.key==='Enter') doSaveApiKey()">
     <button class="login-btn" onclick="doSaveApiKey()">保存してログイン</button>
-    <div class="login-error" id="setupError">❌ APIキーを入力してください</div>
+    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
     <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0;text-align:center;">
-      キーは <a href="https://console.anthropic.com/" target="_blank" style="color:var(--primary);">console.anthropic.com</a> で取得
+      キーは <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary);">aistudio.google.com/apikey</a> で無料取得
     </p>
   </div>
 </div>
@@ -599,8 +599,38 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 //  ★★★ 設定（ここを変更してください）★★★
 // ══════════════════════════════════════════════
 
-// Anthropic APIキー（localStorageに保存・コードには含まない）
-const getApiKey = () => localStorage.getItem('anthropic_api_key') || '';
+// Gemini APIキー（localStorageに保存・コードには含まない）
+const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
+
+// ── Gemini API 呼び出し ──────────────────────────────
+async function callGemini(prompt) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getApiKey()}`,
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+  );
+  const data = await res.json();
+  if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  if (!text) throw new Error('空のレスポンス');
+  return text;
+}
+
+// ── Notion 直接API（CORSプロキシ経由）──────────────────
+async function notionFetch(path, method='GET', body=null) {
+  const target = 'https://api.notion.com/v1' + path;
+  const opts = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(target), opts);
+  return res.json();
+}
 
 // Notion インテグレーションキー（https://www.notion.so/my-integrations で取得）
 // ※ 取得後、ぱわふる安中のメインページでこのインテグレーションに「アクセス許可」を与えること
@@ -659,12 +689,12 @@ function doLogin() {
 
 function doSaveApiKey() {
   const key = document.getElementById('apiKeySetup').value.trim();
-  if (!key.startsWith('sk-ant-')) {
+  if (!key.startsWith('AIza')) {
     document.getElementById('setupError').style.display = 'block';
     setTimeout(() => document.getElementById('setupError').style.display = 'none', 2500);
     return;
   }
-  localStorage.setItem('anthropic_api_key', key);
+  localStorage.setItem('gemini_api_key', key);
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   initApp();
@@ -678,7 +708,7 @@ function doLogout() {
 }
 
 function resetApiKey() {
-  localStorage.removeItem('anthropic_api_key');
+  localStorage.removeItem('gemini_api_key');
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('apiKeySetup').value = '';
   document.getElementById('setupScreen').style.display = 'flex';
@@ -818,55 +848,48 @@ async function loadHistory(userName) {
   list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ 読み込み中...</div>';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
-        messages: [{
-          role: 'user',
-          content: `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）から、
-利用者名「${userName}」の直近3件の記録を取得してください。
-各記録について以下のフィールドを取得してください：実施日、体調、活動、マルチセレクト（食事量）、メモ。
-結果を以下のJSON配列形式のみで返してください：
-[{"date":"YYYY-MM-DD","condition":["良好"],"activity":["体操"],"meal":"完食","memo":"メモ内容"}]
-JSONのみ返し、前後の説明文やマークダウン記号は不要です。データがない場合は[]を返してください。`
-        }]
-      })
+    const data = await notionFetch(
+      `/databases/${RENRAKUCHO_DB_ID}/query`, 'POST',
+      { sorts: [{ property: '実施日', direction: 'descending' }], page_size: 30 }
+    );
+    const pages = (data.results || []).filter(p => {
+      const props = p.properties || {};
+      const nameVal = Object.values(props).find(v =>
+        (v.type === 'title' && v.title?.map(t=>t.plain_text).join('').includes(userName)) ||
+        (v.type === 'rich_text' && v.rich_text?.map(t=>t.plain_text).join('').includes(userName))
+      );
+      return !!nameVal;
+    }).slice(0, 3);
+
+    const records = pages.map(p => {
+      const props = p.properties || {};
+      const get = (key, type) => props[key]?.[type] ?? null;
+      return {
+        date: get('実施日','date')?.start || '',
+        condition: (get('体調','multi_select') || []).map(s=>s.name),
+        activity:  (get('活動','multi_select') || []).map(s=>s.name),
+        meal: (get('食事量','select') || get('マルチセレクト（食事量）','select'))?.name
+              || (get('食事量','multi_select') || get('マルチセレクト（食事量）','multi_select') || []).map(s=>s.name).join('・'),
+        memo: (get('メモ','rich_text') || []).map(t=>t.plain_text).join('')
+      };
     });
 
-    const data = await res.json();
-    const text = data.content?.map(c => c.text||'').join('') || '';
-    const match = text.match(/\[[\s\S]*?\]/);
-
-    if (match) {
-      const records = JSON.parse(match[0]);
-      historyData = records;
-      if (records.length === 0) {
-        list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
-        return;
-      }
-      list.innerHTML = records.map(h => `
-        <div class="history-item">
-          <div class="history-date">📅 ${fmtDate(h.date)}</div>
-          <div class="history-chips">
-            ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
-            ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
-            ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
-          </div>
-          <div class="history-memo">${h.memo||''}</div>
-        </div>
-      `).join('');
-    } else {
-      throw new Error('parse error');
+    historyData = records;
+    if (records.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
+      return;
     }
+    list.innerHTML = records.map(h => `
+      <div class="history-item">
+        <div class="history-date">📅 ${fmtDate(h.date)}</div>
+        <div class="history-chips">
+          ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
+          ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
+          ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
+        </div>
+        <div class="history-memo">${h.memo||''}</div>
+      </div>
+    `).join('');
   } catch(e) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⚠️ 過去記録の取得に失敗しました</div>';
   }
@@ -961,26 +984,8 @@ ${memoInstruction}${histCtx}
   showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    // エラーレスポンスの確認
-    if (data.error) throw new Error(`API Error: ${data.error.type} - ${data.error.message}`);
-    const text = data.content?.[0]?.text?.trim() || '';
+    const text = await callGemini(prompt);
     hideLoading();
-    if (!text) throw new Error(`空のレスポンス: ${JSON.stringify(data).slice(0,200)}`);
     document.getElementById('resultText').textContent = text;
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
@@ -988,7 +993,6 @@ ${memoInstruction}${histCtx}
     showToast('✨ 文章を生成しました！');
   } catch(e) {
     hideLoading();
-    // エラー詳細を画面に表示
     document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
     document.getElementById('resultCard').classList.add('show');
     showToast('❌ 生成に失敗しました');
@@ -1013,47 +1017,40 @@ async function saveToNotion() {
 
   showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
 
+  const toMultiSelect = str => str ? str.split(/[,、・]/).map(s=>s.trim()).filter(Boolean).map(name=>({name})) : [];
+  const toRichText   = str => str ? [{ type:'text', text:{ content: str } }] : [];
+
+  const memoFull = [
+    vital1 ? `【バイタル】${vital1}` : '',
+    vital2 ? `【再検バイタル】${vital2}` : '',
+    memo    ? `【連絡帳】${memo}` : ''
+  ].filter(Boolean).join('\n');
+
+  const properties = {
+    '利用者名': { title: toRichText(selectedUser) },
+    '実施日':   { date:  { start: date } },
+    '体調':     { multi_select: toMultiSelect(conditions) },
+    '活動':     { multi_select: toMultiSelect(activities) },
+    'マルチセレクト（食事量）': { multi_select: toMultiSelect(meal) },
+    'メモ':     { rich_text: toRichText(memoFull) }
+  };
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
-        messages: [{
-          role: 'user',
-          content: `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）に以下のデータを1件登録してください。
-
-利用者名: ${selectedUser}
-実施日: ${date}
-バイタル: ${vital1}
-バイタル（再検）: ${vital2}
-体調: ${conditions}
-活動: ${activities}
-マルチセレクト（食事量）: ${meal}
-メモ: ${memo}
-
-登録完了したら「登録完了」とだけ返してください。`
-        }]
-      })
+    const data = await notionFetch('/pages', 'POST', {
+      parent: { database_id: RENRAKUCHO_DB_ID },
+      properties
     });
-    const data = await res.json();
     hideLoading();
-    const txt = data.content?.map(c=>c.text||'').join('') || '';
-    if (txt.includes('完了') || txt.includes('登録') || txt.includes('作成')) {
+    if (data.id) {
       showToast('✅ Notionに保存しました！');
       setTimeout(resetForm, 1800);
     } else {
-      showToast('✅ 処理しました。Notionをご確認ください');
+      const errMsg = data.message || JSON.stringify(data).slice(0,100);
+      throw new Error(errMsg);
     }
   } catch(e) {
     hideLoading();
+    document.getElementById('resultText').textContent += `\n\n⚠️ Notion保存エラー:\n${e.message}`;
     showToast('❌ 保存に失敗しました');
   }
 }
