@@ -614,17 +614,25 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
 
 // ── Gemini API 呼び出し ──────────────────────────────
-async function callGemini(prompt) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getApiKey()}`,
-    { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
-  );
-  const data = await res.json();
-  if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-  if (!text) throw new Error('空のレスポンス');
-  return text;
+async function callGemini(prompt, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 4000 * i)); // 4秒・8秒と待機
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getApiKey()}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+    );
+    const data = await res.json();
+    // レート制限(429)は待機してリトライ
+    if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
+      if (i < retries - 1) continue;
+      throw new Error('リクエストが混み合っています。しばらく待ってから再試行してください。');
+    }
+    if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    if (!text) throw new Error('空のレスポンス');
+    return text;
+  }
 }
 
 // ── Notion 直接API（CORSプロキシ経由）──────────────────
