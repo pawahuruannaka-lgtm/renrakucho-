@@ -737,6 +737,10 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
           <button class="action-btn btn-print" onclick="printResult()">🖨️ 印刷</button>
           <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notion保存</button>
         </div>
+        <div id="notionErrorArea" style="display:none;margin:8px 16px 12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;color:#DC2626;">
+          <strong>⚠️ Notion保存エラー</strong>
+          <div id="notionErrorMsg" style="margin-top:4px;white-space:pre-wrap;word-break:break-all;"></div>
+        </div>
       </div>
 
     </div>
@@ -961,7 +965,7 @@ async function callGemini(prompt) {
   throw new Error('全モデルでリクエスト制限に達しました。\nしばらく時間をおいてから再試行してください。\n（Gemini無料枠の1日上限に達した可能性があります）');
 }
 
-// ── Notion 直接API（複数CORSプロキシ自動切り替え）──────────────────
+// ── Notion 直接API（複数CORSプロキシ並列試行）──────────────────
 async function notionFetch(path, method='GET', body=null) {
   const target = 'https://api.notion.com/v1' + path;
   const headers = {
@@ -971,34 +975,37 @@ async function notionFetch(path, method='GET', body=null) {
   };
   const bodyStr = body ? JSON.stringify(body) : null;
 
-  // POST+認証ヘッダーに対応している実績のあるCORSプロキシ
-  const proxies = [
-    { url: 'https://corsproxy.io/?',                      encode: false },
-    { url: 'https://api.cors.lol/?url=',                  encode: true  },
-    { url: 'https://cors-proxy.fringe.zone/',              encode: false },
-  ];
-
-  const errors = [];
-  for (const { url: proxyBase, encode } of proxies) {
-    const proxyUrl = encode ? proxyBase + encodeURIComponent(target) : proxyBase + target;
+  // 各プロキシを1リクエストとしてラップ
+  async function tryProxy(proxyUrl) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
+    const timer = setTimeout(() => controller.abort(), 20000);
     try {
       const res = await fetch(proxyUrl, { method, headers, body: bodyStr, signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`HTTP ${res.status} (${proxyBase.replace('https://','').split('/')[0]}): ${errText.slice(0, 80)}`);
+        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
       }
       return await res.json();
-    } catch(e) {
+    } finally {
       clearTimeout(timer);
-      const msg = e.name === 'AbortError' ? `タイムアウト(${proxyBase.replace('https://','').split('/')[0]})` : e.message;
-      errors.push(msg);
-      // 次のプロキシを試す
     }
   }
-  throw new Error(`Notion API接続失敗。全プロキシ試行済み:\n${errors.map((e,i)=>`[${i+1}] ${e}`).join('\n')}`);
+
+  const proxyUrls = [
+    'https://corsproxy.io/?' + target,
+    'https://api.cors.lol/?url=' + encodeURIComponent(target),
+    'https://corsproxy.org/?' + target,
+  ];
+
+  // 全プロキシを並列で試し、最初に成功したものを使う
+  try {
+    return await Promise.any(proxyUrls.map(u => tryProxy(u)));
+  } catch(aggErr) {
+    // AggregateError から各エラーを取り出す
+    const msgs = (aggErr.errors || [aggErr]).map((e, i) => `[${i+1}] ${e.message}`).join('\n');
+    throw new Error(`全プロキシで失敗:\n${msgs}`);
+  }
 }
 
 // Notion インテグレーションキー（https://www.notion.so/my-integrations で取得）
@@ -1461,22 +1468,30 @@ async function saveToNotion(auto = false) {
       parent: { database_id: RENRAKUCHO_DB_ID },
       properties
     });
-    hideLoading(); // auto/手動に関わらず必ず閉じる
+    hideLoading();
     if (data.id) {
+      hideNotionError();
       showToast(auto ? '✅ Notionに自動保存しました！' : '✅ Notionに保存しました！');
       if (!auto) setTimeout(resetForm, 1800);
     } else {
       throw new Error(data.message || data.code || JSON.stringify(data).slice(0, 120));
     }
   } catch(e) {
-    hideLoading(); // auto/手動に関わらず必ず閉じる
-    if (auto) {
-      showToast('⚠️ 自動保存に失敗 → 手動で「Notion保存」を押してください');
-    } else {
-      document.getElementById('resultText').textContent += `\n\n⚠️ Notion保存エラー:\n${e.message}`;
-      showToast('❌ 保存に失敗しました');
-    }
+    hideLoading();
+    showNotionError(e.message);
+    showToast(auto ? '⚠️ 自動保存に失敗しました' : '❌ Notion保存に失敗しました');
   }
+}
+
+function showNotionError(msg) {
+  const area = document.getElementById('notionErrorArea');
+  if (!area) return;
+  document.getElementById('notionErrorMsg').textContent = msg;
+  area.style.display = 'block';
+}
+function hideNotionError() {
+  const area = document.getElementById('notionErrorArea');
+  if (area) area.style.display = 'none';
 }
 
 // ══════════════════════════════════════════════
@@ -1566,6 +1581,7 @@ function resetForm() {
   document.getElementById('memoInput').value='';
   document.getElementById('bulletInput').value='';
   document.getElementById('resultCard').classList.remove('show');
+  hideNotionError();
   document.getElementById('historyCard').style.display='none';
   if (recheckOpen) toggleRecheck();
   document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
