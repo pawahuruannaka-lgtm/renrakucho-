@@ -614,47 +614,58 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
 
 // ── Gemini API 呼び出し ──────────────────────────────
-// 利用可能なモデルを順に試す（APIキーによって使えるモデルが異なるため）
-const GEMINI_MODELS = [
-  'gemini-2.0-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash-8b',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro'
-];
+// APIキーで使えるモデルをListModels APIで自動検出してキャッシュする
+async function getGeminiModel() {
+  const cached = localStorage.getItem('gemini_model');
+  if (cached) return cached;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models?key=${getApiKey()}`
+  );
+  const data = await res.json();
+  if (data.error) throw new Error(`APIキーエラー: ${data.error.message}`);
+
+  // generateContentに対応しているFlash系モデルを優先して選ぶ
+  const prefer = ['flash-lite', 'flash-8b', 'flash', 'pro'];
+  const models = (data.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace('models/', ''));
+
+  let chosen = null;
+  for (const p of prefer) {
+    chosen = models.find(m => m.includes(p));
+    if (chosen) break;
+  }
+  if (!chosen) chosen = models[0];
+  if (!chosen) throw new Error('このAPIキーで使えるモデルがありません');
+
+  localStorage.setItem('gemini_model', chosen);
+  return chosen;
+}
 
 async function callGemini(prompt) {
-  let lastError = '';
-  for (const model of GEMINI_MODELS) {
-    for (let retry = 0; retry < 2; retry++) {
-      if (retry > 0) await new Promise(r => setTimeout(r, 5000));
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 600, temperature: 0.7, topP: 0.9 }
-          })
-        }
-      );
-      const data = await res.json();
-      // モデルが存在しない → 次のモデルを試す
-      if (data.error?.code === 404 || data.error?.status === 'NOT_FOUND') {
-        lastError = `${model}: NOT_FOUND`;
-        break;
+  const model = await getGeminiModel();
+  for (let retry = 0; retry < 3; retry++) {
+    if (retry > 0) await new Promise(r => setTimeout(r, 5000 * retry));
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 600, temperature: 0.7, topP: 0.9 }
+        })
       }
-      // レート制限 → リトライ
-      if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-        if (retry === 0) continue;
-        lastError = `${model}: レート制限`;
-        break;
-      }
-      if (data.error) { lastError = `${model}: ${data.error.message}`; break; }
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-      if (text) return text;
+    );
+    const data = await res.json();
+    if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
+      if (retry < 2) continue;
+      throw new Error('リクエスト制限に達しました。1分ほど待ってから再試行してください。');
     }
+    if (data.error) throw new Error(`API Error: ${data.error.status} - ${data.error.message}`);
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    if (text) return text;
+    throw new Error('空のレスポンス');
   }
-  throw new Error(`利用可能なGeminiモデルが見つかりません。\n最終エラー: ${lastError}\nAPIキーをご確認ください。`);
 }
 
 // ── Notion 直接API（CORSプロキシ経由）──────────────────
@@ -736,6 +747,7 @@ function doSaveApiKey() {
     return;
   }
   localStorage.setItem('gemini_api_key', key);
+  localStorage.removeItem('gemini_model'); // モデルキャッシュをリセット
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   initApp();
