@@ -761,7 +761,10 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
           <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notion保存</button>
         </div>
         <div id="notionErrorArea" style="display:none;margin:8px 16px 12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;color:#DC2626;">
-          <strong>⚠️ Notion保存エラー</strong>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <strong>⚠️ Notion保存エラー</strong>
+            <button onclick="openNotionModal()" style="padding:4px 10px;background:#DC2626;color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Notion設定を開く</button>
+          </div>
           <div id="notionErrorMsg" style="margin-top:4px;white-space:pre-wrap;word-break:break-all;"></div>
         </div>
       </div>
@@ -1468,6 +1471,14 @@ ${memoInstruction}${histCtx}
 async function saveToNotion(auto = false) {
   if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
 
+  // トークン未設定チェック
+  if (!getNotionToken()) {
+    hideLoading();
+    showNotionError('Notionトークンが未設定です。\nヘッダーの「Notion設定」ボタンからトークンを入力してください。');
+    if (!auto) openNotionModal();
+    return;
+  }
+
   const memo   = document.getElementById('resultText').textContent;
   const date   = document.getElementById('dateInput').value;
   const vital1 = buildVital(document.getElementById('temp').value, document.getElementById('bp').value, document.getElementById('pulse').value);
@@ -1521,7 +1532,13 @@ async function saveToNotion(auto = false) {
     }
   } catch(e) {
     hideLoading();
-    showNotionError(e.message);
+    const is401 = e.message.includes('401');
+    if (is401) {
+      showNotionError('Notionトークンが無効です（401）。\nNotion側で「シークレットを再発行」して「Notion設定」ボタンから新しいトークンを入力してください。');
+      if (!auto) openNotionModal();
+    } else {
+      showNotionError(e.message);
+    }
     showToast(auto ? '⚠️ 自動保存に失敗しました' : '❌ Notion保存に失敗しました');
   }
 }
