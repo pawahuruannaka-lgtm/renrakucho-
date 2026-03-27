@@ -484,25 +484,65 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
   </div>
 </div>
 
-<!-- Notion設定モーダル -->
-<div id="notionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">⬛ Notion接続設定</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Notionの統合トークンを入力してください</div>
-    <label class="login-label" for="notionTokenInput">統合トークン（ntn_…）</label>
-    <input type="text" class="login-input" id="notionTokenInput" placeholder="ntn_..."
-      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
-      onkeydown="if(event.key==='Enter') saveNotionToken()">
-    <div style="margin-bottom:14px;padding:10px 12px;background:#EFF6FF;border-radius:8px;font-size:11px;color:#1E40AF;line-height:1.8;">
-      <strong>取得方法：</strong><a href="https://www.notion.so/my-integrations" target="_blank" style="color:#1E6FD9;font-weight:700;">notion.so/my-integrations</a> →「シークレット」を再発行してコピー
+<!-- 保存設定モーダル -->
+<div id="notionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:12px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">💾 保存先設定</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;">Googleスプレッドシートへの保存を推奨します（Notionより確実）</div>
+
+    <!-- ① Googleスプレッドシート（推奨） -->
+    <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:10px;">✅ ① Googleスプレッドシート（推奨・確実）</div>
+
+      <div style="font-size:11px;color:#166534;margin-bottom:8px;line-height:1.7;">
+        <strong>セットアップ手順（1回だけ）</strong><br>
+        1. <a href="https://sheets.google.com" target="_blank" style="color:#1E6FD9;font-weight:700;">sheets.google.com</a> で新規スプレッドシートを作成<br>
+        2. メニュー「拡張機能」→「Apps Script」を開く<br>
+        3. 表示されたコードをすべて削除し、下のスクリプトを貼り付け<br>
+        4. 💾 保存 → 「デプロイ」→「新しいデプロイ」<br>
+        5. 種類：<strong>ウェブアプリ</strong> ／ アクセス：<strong>全員</strong> → デプロイ<br>
+        6. 表示された <strong>ウェブアプリのURL</strong> をコピーして下に貼り付け
+      </div>
+
+      <div style="position:relative;margin-bottom:10px;">
+        <textarea id="gasScriptArea" readonly rows="6"
+          style="width:100%;font-size:10px;font-family:monospace;background:#1E293B;color:#7DD3FC;border:none;border-radius:6px;padding:10px;resize:none;box-sizing:border-box;line-height:1.5;">function doPost(e){
+  try{
+    var d=JSON.parse(e.postData.contents);
+    var ss=SpreadsheetApp.getActiveSpreadsheet();
+    var sh=ss.getSheetByName('連絡帳');
+    if(!sh){sh=ss.insertSheet('連絡帳');sh.appendRow(['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時']);sh.setFrozenRows(1);}
+    sh.appendRow([d.date,d.user,d.conditions,d.activities,d.meal,d.medication,d.vital,d.message,new Date().toLocaleString('ja-JP')]);
+    return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
+  }catch(err){
+    return ContentService.createTextOutput('{"ok":false,"error":"'+err.message+'"}').setMimeType(ContentService.MimeType.JSON);
+  }
+}</textarea>
+        <button onclick="copyGasScript()" style="position:absolute;top:6px;right:6px;padding:4px 10px;background:#1E6FD9;color:#fff;border:none;border-radius:4px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;">コピー</button>
+      </div>
+
+      <label class="login-label" for="gasUrlInput" style="color:#166534;">ウェブアプリのURL</label>
+      <input type="text" class="login-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..."
+        style="font-size:12px;letter-spacing:0;text-align:left;margin-bottom:8px;"
+        onkeydown="if(event.key==='Enter') saveGasUrl()">
+      <button onclick="saveGasUrl()"
+        style="width:100%;padding:11px;background:#16A34A;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">スプレッドシートURLを保存</button>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="document.getElementById('notionModal').style.display='none'"
-        style="flex:1;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">キャンセル</button>
+
+    <!-- ② Notion（オプション） -->
+    <div style="background:#F8F9FA;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">⬛ ② Notion（オプション）</div>
+      <label class="login-label" for="notionTokenInput">統合トークン（ntn_…）</label>
+      <input type="text" class="login-input" id="notionTokenInput" placeholder="ntn_..."
+        style="font-size:12px;letter-spacing:0;text-align:left;margin-bottom:8px;"
+        onkeydown="if(event.key==='Enter') saveNotionToken()">
       <button onclick="saveNotionToken()"
-        style="flex:1;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">保存</button>
+        style="width:100%;padding:11px;background:#333;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Notionトークンを保存</button>
     </div>
-    <div id="notionModalError" style="display:none;margin-top:10px;color:var(--danger);font-size:12px;font-weight:600;"></div>
+
+    <div id="notionModalError" style="display:none;margin-bottom:10px;color:var(--danger);font-size:12px;font-weight:600;"></div>
+    <button onclick="document.getElementById('notionModal').style.display='none'"
+      style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">閉じる</button>
   </div>
 </div>
 
@@ -520,7 +560,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#333;">Notion設定</button>
+      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#166534;">保存設定</button>
       <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">APIキー変更</button>
       <button class="logout-btn" onclick="doLogout()">ログアウト</button>
     </div>
@@ -758,7 +798,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
           <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
           <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
           <button class="action-btn btn-print" onclick="printResult()">🖨️ 印刷</button>
-          <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notion保存</button>
+          <button class="action-btn btn-notion" onclick="doSave()">💾 保存</button>
         </div>
         <div id="notionErrorArea" style="display:none;margin:8px 16px 12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;color:#DC2626;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -1133,10 +1173,26 @@ function doSaveApiKey() {
   initApp();
 }
 
+const getGasUrl = () => localStorage.getItem('gas_url') || '';
+
 function openNotionModal() {
+  document.getElementById('gasUrlInput').value = getGasUrl();
   document.getElementById('notionTokenInput').value = getNotionToken();
   document.getElementById('notionModalError').style.display = 'none';
   document.getElementById('notionModal').style.display = 'flex';
+}
+
+function saveGasUrl() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  const errEl = document.getElementById('notionModalError');
+  if (!url.startsWith('https://script.google.com/')) {
+    errEl.textContent = '❌ https://script.google.com/macros/s/...で始まるURLを入力してください';
+    errEl.style.display = 'block';
+    return;
+  }
+  localStorage.setItem('gas_url', url);
+  document.getElementById('notionModal').style.display = 'none';
+  showToast('✅ スプレッドシートURLを保存しました');
 }
 
 function saveNotionToken() {
@@ -1150,6 +1206,85 @@ function saveNotionToken() {
   localStorage.setItem('notion_token', token);
   document.getElementById('notionModal').style.display = 'none';
   showToast('✅ Notionトークンを保存しました');
+}
+
+function copyGasScript() {
+  const text = document.getElementById('gasScriptArea').value;
+  navigator.clipboard.writeText(text).then(() => showToast('📋 スクリプトをコピーしました'))
+    .catch(() => { document.getElementById('gasScriptArea').select(); showToast('📋 テキストを選択しました'); });
+}
+
+// ── Googleスプレッドシート保存（GAS経由・CORS問題なし）──
+async function saveToSheets() {
+  const url = getGasUrl();
+  if (!url) return false;
+
+  const vital1 = buildVital(
+    document.getElementById('temp').value,
+    document.getElementById('bp').value,
+    document.getElementById('pulse').value
+  );
+  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
+  const medText = [
+    medBefore ? '昼食前:済' : '',
+    medAfter  ? '昼食後:済' : '',
+    prn       ? `頓服:${prn}` : ''
+  ].filter(Boolean).join(' / ');
+
+  const payload = JSON.stringify({
+    date:       document.getElementById('dateInput').value,
+    user:       selectedUser,
+    conditions: selectedConditions.join('・'),
+    activities: selectedActivities.join('・'),
+    meal:       selectedMeal || '',
+    medication: medText,
+    vital:      vital1,
+    message:    document.getElementById('resultText').textContent
+  });
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // シンプルリクエスト（CORSプリフライト不要）
+      body: payload
+    });
+    const data = await res.json();
+    if (data.ok) return true;
+    throw new Error(data.error || '不明なエラー');
+  } catch(e) {
+    throw new Error(`スプレッドシート保存エラー: ${e.message}`);
+  }
+}
+
+// ── 統合保存処理（Sheets優先 → Notion fallback）──
+async function doSave(auto = false) {
+  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+  const hasSheets = !!getGasUrl();
+  const hasNotion = !!getNotionToken();
+
+  if (!hasSheets && !hasNotion) {
+    showNotionError('保存先が設定されていません。\nヘッダーの「保存設定」から設定してください。');
+    if (!auto) openNotionModal();
+    return;
+  }
+
+  if (!auto) showLoading('保存中...', hasSheets ? 'Googleスプレッドシートに保存しています' : 'Notionに保存しています');
+
+  try {
+    if (hasSheets) {
+      await saveToSheets();
+      hideLoading();
+      hideNotionError();
+      showToast(auto ? '✅ スプレッドシートに自動保存しました！' : '✅ スプレッドシートに保存しました！');
+      if (!auto) setTimeout(resetForm, 1800);
+    } else {
+      await saveToNotion(auto);
+    }
+  } catch(e) {
+    hideLoading();
+    showNotionError(e.message);
+    showToast(auto ? '⚠️ 自動保存に失敗しました' : '❌ 保存に失敗しました');
+  }
 }
 
 function doLogout() {
@@ -1479,9 +1614,9 @@ ${memoInstruction}${histCtx}
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
     rc.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    showToast('✨ 生成完了！Notionに自動保存中...');
+    showToast('✨ 生成完了！自動保存中...');
     // 自動保存（非同期・失敗してもUIはブロックしない）
-    saveToNotion(true);
+    doSave(true);
   } catch(e) {
     hideLoading();
     document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
