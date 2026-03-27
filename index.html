@@ -535,24 +535,74 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
         <textarea id="gasScriptArea" readonly rows="8"
           style="width:100%;font-size:10px;font-family:monospace;background:#1E293B;color:#7DD3FC;border:none;border-radius:6px;padding:10px;resize:none;box-sizing:border-box;line-height:1.5;">function doPost(e){
   try{
-    if(!e||!e.postData||!e.postData.contents) throw new Error('リクエストデータなし');
+    if(!e||!e.postData||!e.postData.contents)throw new Error('no data');
     var d=JSON.parse(e.postData.contents);
     var ss=SpreadsheetApp.openById('1n9w48mkf1UCpc_yfI0l9RpOgPfwclGbIrkX0yGOXEFw');
-    var sh=ss.getSheetByName('連絡帳');
-    if(!sh){
-      sh=ss.insertSheet('連絡帳');
-      sh.appendRow(['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時']);
-      sh.setFrozenRows(1);
-      sh.setColumnWidth(8,400);
-    }
-    sh.appendRow([d.date||'',d.user||'',d.conditions||'',d.activities||'',d.meal||'',d.medication||'',d.vital||'',d.message||'',new Date().toLocaleString('ja-JP')]);
-    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+    var sh=ss.getSheetByName('連絡帳')||ss.insertSheet('連絡帳');
+    writeFormatted(sh,d);
+    return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
   }catch(err){
-    return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.message})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput('{"ok":false,"error":"'+err.message+'"}').setMimeType(ContentService.MimeType.JSON);
   }
 }
-function doGet(e){
-  return ContentService.createTextOutput(JSON.stringify({ok:true,status:'connected'})).setMimeType(ContentService.MimeType.JSON);
+function doGet(){return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);}
+function writeFormatted(sh,d){
+  var C=8,M=SpreadsheetApp.BorderStyle.SOLID,MB=SpreadsheetApp.BorderStyle.SOLID_MEDIUM;
+  var nr=sh.getLastRow();
+  var R=nr>0?nr+2:1;
+  // 列幅初期設定
+  if(nr===0){[1,2,3,4,5,6,7,8].forEach(function(i){sh.setColumnWidth(i,90);});}
+  // ① ヘッダー行
+  var h=sh.getRange(R,1,1,C);
+  h.merge().setBackground('#D0E4F7').setBorder(true,true,true,true,false,false,'#1565C0',MB);
+  sh.getRange(R,1).setValue('ぱわふる安中　生活介護事業所　　　連　絡　帳　　　'+fmtD(d.date)).setFontSize(11).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sh.setRowHeight(R,26);R++;
+  // ② 利用者行
+  sh.getRange(R,1,1,C).setBackground('#EEF6FF').setBorder(true,true,true,true,false,false,'#AAAAAA',M);
+  sh.getRange(R,1,1,1).setValue('利用者').setFontSize(8).setFontColor('#777').setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sh.getRange(R,2,1,5).merge().setValue((d.user||'')+'　様').setFontSize(12).setFontWeight('bold').setVerticalAlignment('middle');
+  sh.getRange(R,7,1,2).merge().setValue(d.residence||'').setFontSize(9).setHorizontalAlignment('right').setVerticalAlignment('middle').setFontColor('#444');
+  sh.setRowHeight(R,24);R++;
+  // ③ バイタル行
+  var bdr='#BBBBBB';
+  sh.getRange(R,1,1,C).setBorder(true,true,true,true,true,false,bdr,M);
+  var vl=[['体　温',d.temp||'—'],['血　圧',d.bp||'—'],['脈　拍',d.pulse||'—'],['再検測定',d.recheck||'—']];
+  for(var i=0;i<4;i++){
+    var c=sh.getRange(R,i*2+1,1,2).merge();
+    c.setValue(vl[i][0]+'\n'+vl[i][1]).setFontSize(9).setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
+    if(i===3&&!d.recheck)c.setFontColor('#BBBBBB');
+  }
+  sh.setRowHeight(R,38);R++;
+  // ④ 体調・活動・食事・服薬（ラベル）
+  sh.getRange(R,1,1,C).setBackground('#F0F8FF').setBorder(true,true,false,true,true,false,bdr,M);
+  var labs=['体調・気分','本日の活動','食事摂取量','服　　　薬'];
+  for(var j=0;j<4;j++)sh.getRange(R,j*2+1,1,2).merge().setValue(labs[j]).setFontSize(8).setFontWeight('bold').setFontColor('#555').setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sh.setRowHeight(R,18);R++;
+  // ⑤ 値行
+  sh.getRange(R,1,1,C).setBorder(false,true,true,true,true,false,bdr,M);
+  var vals=[d.conditions||'',d.activities||'',d.meal||'',d.medication||''];
+  for(var k=0;k<4;k++)sh.getRange(R,k*2+1,1,2).merge().setValue(vals[k]).setFontSize(9).setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
+  sh.setRowHeight(R,40);R++;
+  // ⑥ 本日のご様子ラベル
+  sh.getRange(R,1,1,C).merge().setValue('本日のご様子').setFontSize(8).setFontWeight('bold').setFontColor('#555').setBackground('#FFFDE7').setBorder(true,true,false,true,false,false,bdr,M);
+  sh.setRowHeight(R,18);R++;
+  // ⑦ 本日のご様子テキスト（4行）
+  sh.getRange(R,1,4,C).merge().setValue(d.message||'').setFontSize(9.5).setVerticalAlignment('top').setWrap(true).setBorder(false,true,true,true,false,false,bdr,M);
+  for(var r=0;r<4;r++)sh.setRowHeight(R+r,20);R+=4;
+  // ⑧ ご家族欄ラベル
+  sh.getRange(R,1,1,C).merge().setValue('ご家族からのご連絡').setFontSize(8).setFontWeight('bold').setFontColor('#555').setBackground('#F1F8E9').setBorder(true,true,false,true,false,false,bdr,M);
+  sh.setRowHeight(R,18);R++;
+  // ⑨ ご家族欄スペース（2行）
+  sh.getRange(R,1,2,C).merge().setValue('').setBorder(false,true,true,true,false,false,bdr,M);
+  sh.setRowHeight(R,22);sh.setRowHeight(R+1,22);R+=2;
+  // ⑩ フッター
+  sh.getRange(R,1,1,C).merge().setValue('保存日時：'+new Date().toLocaleString('ja-JP')).setFontSize(7).setFontColor('#AAAAAA').setHorizontalAlignment('right');
+  sh.setRowHeight(R,14);
+}
+function fmtD(s){
+  if(!s)return '';
+  var d=new Date(s+'T00:00:00');
+  return d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
 }</textarea>
         <button onclick="copyGasScript()" style="position:absolute;top:6px;right:6px;padding:4px 10px;background:#1E6FD9;color:#fff;border:none;border-radius:4px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;">コピー</button>
       </div>
@@ -1328,11 +1378,12 @@ async function saveToSheets(record) {
 const LOCAL_RECORDS_KEY = 'renrakucho_records';
 
 function buildRecord() {
-  const vital1 = buildVital(
-    document.getElementById('temp').value,
-    document.getElementById('bp').value,
-    document.getElementById('pulse').value
-  );
+  const temp  = document.getElementById('temp').value;
+  const bp    = document.getElementById('bp').value;
+  const pulse = document.getElementById('pulse').value;
+  const temp2  = document.getElementById('temp2')?.value || '';
+  const bp2    = document.getElementById('bp2')?.value   || '';
+  const pulse2 = document.getElementById('pulse2')?.value || '';
   const prn = document.getElementById('medPrnInput')?.value.trim() || '';
   const medText = [
     medBefore ? '昼食前:済' : '',
@@ -1342,11 +1393,16 @@ function buildRecord() {
   return {
     date:       document.getElementById('dateInput').value,
     user:       selectedUser,
+    residence:  usersResidence[selectedUser] || '',
     conditions: selectedConditions.join('・'),
     activities: selectedActivities.join('・'),
     meal:       selectedMeal || '',
     medication: medText,
-    vital:      vital1,
+    temp:       temp  ? `${temp}℃`    : '—',
+    bp:         bp    ? bp             : '—',
+    pulse:      pulse ? `${pulse}回/分` : '—',
+    recheck:    recheckOpen ? buildVital(temp2, bp2, pulse2) : '',
+    vital:      buildVital(temp, bp, pulse),
     message:    document.getElementById('resultText').textContent,
     savedAt:    new Date().toLocaleString('ja-JP')
   };
