@@ -484,6 +484,33 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
   </div>
 </div>
 
+<!-- CSVダウンロードモーダル -->
+<div id="csvModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:12px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">📊 保存データ管理</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;">保存した連絡帳データをCSVでダウンロードできます</div>
+
+    <div id="csvSummary" style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#1E40AF;font-weight:600;"></div>
+
+    <button onclick="downloadCsv()"
+      style="width:100%;padding:13px;background:#1E6FD9;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+      📥 CSVをダウンロード（Excel対応）
+    </button>
+
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#92400E;">
+      ⚠️ ダウンロード後に「データを消去」してください。消去しないとデータが蓄積されます。
+    </div>
+
+    <button onclick="confirmClearData()"
+      style="width:100%;padding:11px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+      🗑️ ダウンロード済みデータを消去
+    </button>
+
+    <button onclick="document.getElementById('csvModal').style.display='none'"
+      style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">閉じる</button>
+  </div>
+</div>
+
 <!-- 保存設定モーダル -->
 <div id="notionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:12px;">
   <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
@@ -574,7 +601,8 @@ function doGet(e){
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#166534;">保存設定</button>
+      <button class="logout-btn" id="csvBtn" onclick="openCsvModal()" style="margin-right:4px;background:#1E6FD9;">📊 <span id="csvCount">0</span>件</button>
+      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#555;">保存設定</button>
       <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">APIキー変更</button>
       <button class="logout-btn" onclick="doLogout()">ログアウト</button>
     </div>
@@ -1271,32 +1299,11 @@ async function testGasConnection() {
 }
 
 // ── Googleスプレッドシート保存（GAS経由・CORS問題なし）──
-async function saveToSheets() {
+async function saveToSheets(record) {
   const url = getGasUrl();
   if (!url) return false;
 
-  const vital1 = buildVital(
-    document.getElementById('temp').value,
-    document.getElementById('bp').value,
-    document.getElementById('pulse').value
-  );
-  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
-  const medText = [
-    medBefore ? '昼食前:済' : '',
-    medAfter  ? '昼食後:済' : '',
-    prn       ? `頓服:${prn}` : ''
-  ].filter(Boolean).join(' / ');
-
-  const payload = JSON.stringify({
-    date:       document.getElementById('dateInput').value,
-    user:       selectedUser,
-    conditions: selectedConditions.join('・'),
-    activities: selectedActivities.join('・'),
-    meal:       selectedMeal || '',
-    medication: medText,
-    vital:      vital1,
-    message:    document.getElementById('resultText').textContent
-  });
+  const payload = JSON.stringify(record);
 
   try {
     const res = await fetch(url, {
@@ -1317,34 +1324,122 @@ async function saveToSheets() {
   }
 }
 
-// ── 統合保存処理（Sheets優先 → Notion fallback）──
+// ── ローカル保存（localStorage蓄積）──
+const LOCAL_RECORDS_KEY = 'renrakucho_records';
+
+function buildRecord() {
+  const vital1 = buildVital(
+    document.getElementById('temp').value,
+    document.getElementById('bp').value,
+    document.getElementById('pulse').value
+  );
+  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
+  const medText = [
+    medBefore ? '昼食前:済' : '',
+    medAfter  ? '昼食後:済' : '',
+    prn       ? `頓服:${prn}` : ''
+  ].filter(Boolean).join(' / ');
+  return {
+    date:       document.getElementById('dateInput').value,
+    user:       selectedUser,
+    conditions: selectedConditions.join('・'),
+    activities: selectedActivities.join('・'),
+    meal:       selectedMeal || '',
+    medication: medText,
+    vital:      vital1,
+    message:    document.getElementById('resultText').textContent,
+    savedAt:    new Date().toLocaleString('ja-JP')
+  };
+}
+
+function saveToLocal(record) {
+  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
+  records.push(record);
+  localStorage.setItem(LOCAL_RECORDS_KEY, JSON.stringify(records));
+  updateCsvCount();
+}
+
+function updateCsvCount() {
+  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
+  document.getElementById('csvCount').textContent = records.length;
+}
+
+function openCsvModal() {
+  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
+  const summaryEl = document.getElementById('csvSummary');
+  if (records.length === 0) {
+    summaryEl.textContent = '保存データはまだありません。';
+  } else {
+    const dates = records.map(r => r.date).filter(Boolean);
+    const users = [...new Set(records.map(r => r.user).filter(Boolean))];
+    summaryEl.innerHTML = `📋 <strong>${records.length}件</strong>のデータが保存されています<br>
+      期間：${dates[0] || '-'} ～ ${dates[dates.length-1] || '-'}<br>
+      利用者：${users.join('、') || '-'}`;
+  }
+  document.getElementById('csvModal').style.display = 'flex';
+}
+
+function escapeCsvField(val) {
+  const s = String(val ?? '');
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function downloadCsv() {
+  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
+  if (records.length === 0) { showToast('⚠️ 保存データがありません'); return; }
+  const headers = ['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時'];
+  const keys    = ['date','user','conditions','activities','meal','medication','vital','message','savedAt'];
+  const rows = [headers.map(escapeCsvField).join(',')];
+  for (const r of records) {
+    rows.push(keys.map(k => escapeCsvField(r[k])).join(','));
+  }
+  // BOM付きUTF-8でExcelが文字化けしない
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+  a.href = url;
+  a.download = `連絡帳_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 CSVをダウンロードしました');
+}
+
+function confirmClearData() {
+  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
+  if (records.length === 0) { showToast('消去するデータがありません'); return; }
+  if (!confirm(`${records.length}件のデータを消去しますか？\n（先にCSVをダウンロードしてから消去してください）`)) return;
+  localStorage.removeItem(LOCAL_RECORDS_KEY);
+  updateCsvCount();
+  document.getElementById('csvModal').style.display = 'none';
+  showToast('🗑️ データを消去しました');
+}
+
+// ── 統合保存処理（ローカル保存必須 ＋ Sheets/Notion オプション）──
 async function doSave(auto = false) {
   if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+
+  const record = buildRecord();
+
+  // ① 必ずローカルに保存（常に成功）
+  saveToLocal(record);
+  hideNotionError();
+  showToast(auto ? '✅ 自動保存しました！' : '✅ 保存しました！');
+  if (!auto) setTimeout(resetForm, 1800);
+
+  // ② オプション：GAS連携（設定済みの場合のみ）
   const hasSheets = !!getGasUrl();
-  const hasNotion = !!getNotionToken();
-
-  if (!hasSheets && !hasNotion) {
-    showNotionError('保存先が設定されていません。\nヘッダーの「保存設定」から設定してください。');
-    if (!auto) openNotionModal();
-    return;
-  }
-
-  if (!auto) showLoading('保存中...', hasSheets ? 'Googleスプレッドシートに保存しています' : 'Notionに保存しています');
-
-  try {
-    if (hasSheets) {
-      await saveToSheets();
-      hideLoading();
-      hideNotionError();
-      showToast(auto ? '✅ スプレッドシートに自動保存しました！' : '✅ スプレッドシートに保存しました！');
-      if (!auto) setTimeout(resetForm, 1800);
-    } else {
-      await saveToNotion(auto);
+  if (hasSheets) {
+    try {
+      await saveToSheets(record);
+    } catch(e) {
+      // GAS失敗してもローカル保存は成功済みなので警告のみ
+      console.warn('GAS保存失敗（ローカル保存は成功）:', e.message);
     }
-  } catch(e) {
-    hideLoading();
-    showNotionError(e.message);
-    showToast(auto ? '⚠️ 自動保存に失敗しました' : '❌ 保存に失敗しました');
   }
 }
 
@@ -1370,6 +1465,7 @@ async function initApp() {
   document.getElementById('dateInput').value = today.toISOString().split('T')[0];
   document.getElementById('headerDate').textContent =
     today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  updateCsvCount();
   await loadUsersFromNotion();
 }
 
