@@ -891,6 +891,7 @@ function fmtD(s){
           <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
           <button class="action-btn btn-print" onclick="printResult()">🖨️ 印刷</button>
           <button class="action-btn btn-notion" onclick="doSave()">💾 編集して再保存</button>
+          <button class="action-btn" style="background:#7C3AED;color:#fff;" onclick="resetForm()">👤 次の利用者へ</button>
         </div>
         <div id="notionErrorArea" style="display:none;margin:8px 16px 12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;color:#DC2626;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -1475,35 +1476,6 @@ function confirmClearData() {
   showToast('🗑️ データを消去しました');
 }
 
-// ── 自動リセット（カウントダウン付き）──
-let autoResetTimer = null;
-function startAutoReset(sec) {
-  if (autoResetTimer) { clearInterval(autoResetTimer); autoResetTimer = null; }
-  const btn = document.querySelector('.generate-btn');
-  let remaining = sec;
-  const original = btn ? btn.innerHTML : '';
-  function tick() {
-    if (btn) btn.innerHTML = `⏳ ${remaining}秒後に次の入力へ（クリックでキャンセル）`;
-    if (remaining <= 0) {
-      clearInterval(autoResetTimer);
-      autoResetTimer = null;
-      if (btn) { btn.innerHTML = original; btn.onclick = () => generateText(); }
-      resetForm();
-      return;
-    }
-    remaining--;
-  }
-  tick();
-  autoResetTimer = setInterval(tick, 1000);
-  if (btn) btn.onclick = () => {
-    clearInterval(autoResetTimer);
-    autoResetTimer = null;
-    btn.innerHTML = original;
-    btn.onclick = () => generateText();
-    showToast('⏹ 自動リセットをキャンセルしました');
-  };
-}
-
 // ── 統合保存処理（ローカル保存必須 ＋ Sheets/Notion オプション）──
 async function doSave(auto = false) {
   if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
@@ -1859,8 +1831,6 @@ ${memoInstruction}${histCtx}
     showToast('✨ 生成完了！自動保存しました');
     // 自動保存（非同期・失敗してもUIはブロックしない）
     doSave(true);
-    // 3秒後に自動リセット（その間に文章を確認・コピー可能）
-    startAutoReset(3);
   } catch(e) {
     hideLoading();
     document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
