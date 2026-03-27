@@ -930,11 +930,11 @@ async function listGeminiModels() {
     .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map(m => m.name.replace('models/', ''));
 
-  // flash-lite → flash-8b → flash → pro の優先順で並べ替え
-  const order = ['flash-lite', 'flash-8b', 'flash', 'pro'];
+  // flash → 1.5-pro → flash-lite → flash-8b の順（高負荷時の安定性を重視）
+  const order = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'flash-lite', 'flash-8b', 'flash', 'pro'];
   const sorted = [];
   for (const p of order) {
-    const found = all.filter(m => m.includes(p) && !sorted.includes(m));
+    const found = all.filter(m => (m === p || m.includes(p)) && !sorted.includes(m));
     sorted.push(...found);
   }
   for (const m of all) { if (!sorted.includes(m)) sorted.push(m); }
@@ -963,22 +963,47 @@ async function callGemini(prompt) {
   }
 
   for (const model of models) {
-    // 1回目の試行
-    let data = await geminiRequest(model, prompt);
+    // UNAVAILABLE（高負荷）は指数バックオフで最大3回リトライ
+    const MAX_RETRY = 3;
+    let data;
+    for (let attempt = 0; attempt <= MAX_RETRY; attempt++) {
+      if (attempt > 0) {
+        const waitSec = Math.pow(2, attempt); // 2秒 → 4秒 → 8秒
+        showLoading(
+          `サーバー高負荷のため${waitSec}秒後に再試行... (${attempt}/${MAX_RETRY})`,
+          `モデル: ${model}`
+        );
+        await new Promise(r => setTimeout(r, waitSec * 1000));
+      }
 
-    // レート制限の場合、APIが返す待機時間で自動リトライ
-    if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-      const detail = (data.error?.details || []).find(d => d.retryDelay);
-      const delaySec = detail ? parseInt(detail.retryDelay) : 60;
-      showLoading(`制限中…${delaySec}秒待機してリトライします`, `モデル: ${model}`);
-      await new Promise(r => setTimeout(r, delaySec * 1000));
       data = await geminiRequest(model, prompt);
+
+      // UNAVAILABLE → リトライ
+      if (data.error?.status === 'UNAVAILABLE' || data.error?.code === 503) {
+        if (attempt < MAX_RETRY) continue; // まだリトライ残あり
+        break; // 3回全滅 → 次のモデルへ
+      }
+
+      // レート制限 → APIが返す待機時間で1回だけリトライ
+      if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
+        if (attempt === 0) {
+          const detail = (data.error?.details || []).find(d => d.retryDelay);
+          const delaySec = detail ? parseInt(detail.retryDelay) : 60;
+          showLoading(`制限中…${delaySec}秒待機してリトライします`, `モデル: ${model}`);
+          await new Promise(r => setTimeout(r, delaySec * 1000));
+          data = await geminiRequest(model, prompt);
+        }
+        break; // レート制限2回目 or 待機後もNG → 次のモデルへ
+      }
+
+      break; // エラーなし → ループ抜け
     }
 
-    // 2回目もレート制限 → 次のモデルへ
+    // 再度エラー確認（リトライ後）
     if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') continue;
-
+    if (data.error?.status === 'UNAVAILABLE' || data.error?.code === 503) continue;
     if (data.error) throw new Error(`${data.error.status}: ${data.error.message}`);
+
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
     if (text) {
       localStorage.setItem('gemini_model', model);
@@ -988,7 +1013,7 @@ async function callGemini(prompt) {
 
   // 全モデル失敗 → モデル一覧をリセットして次回再検出
   localStorage.removeItem('gemini_models');
-  throw new Error('全モデルでリクエスト制限に達しました。\nしばらく時間をおいてから再試行してください。\n（Gemini無料枠の1日上限に達した可能性があります）');
+  throw new Error('全モデルで失敗しました。\nしばらく時間をおいてから再試行してください。\n（Gemini高負荷または1日上限の可能性）');
 }
 
 // ── Notion 直接API（複数CORSプロキシ並列試行）──────────────────
