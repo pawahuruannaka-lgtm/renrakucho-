@@ -523,7 +523,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 
       <div style="font-size:11px;color:#166534;margin-bottom:8px;line-height:1.7;">
         <strong>セットアップ手順（1回だけ）</strong><br>
-        1. <a href="https://sheets.google.com" target="_blank" style="color:#1E6FD9;font-weight:700;">sheets.google.com</a> で新規スプレッドシートを作成<br>
+        1. <a href="https://docs.google.com/spreadsheets/d/1n9w48mkf1UCpc_yfI0l9RpOgPfwclGbIrkX0yGOXEFw/edit" target="_blank" style="color:#1E6FD9;font-weight:700;">保存先スプレッドシートを開く</a><br>
         2. メニュー「拡張機能」→「Apps Script」を開く<br>
         3. 表示されたコードをすべて削除し、下のスクリプトを貼り付け<br>
         4. 💾 保存 → 「デプロイ」→「新しいデプロイ」<br>
@@ -537,7 +537,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
   try{
     if(!e||!e.postData||!e.postData.contents) throw new Error('リクエストデータなし');
     var d=JSON.parse(e.postData.contents);
-    var ss=SpreadsheetApp.getActiveSpreadsheet();
+    var ss=SpreadsheetApp.openById('1n9w48mkf1UCpc_yfI0l9RpOgPfwclGbIrkX0yGOXEFw');
     var sh=ss.getSheetByName('連絡帳');
     if(!sh){
       sh=ss.insertSheet('連絡帳');
