@@ -505,18 +505,27 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
       </div>
 
       <div style="position:relative;margin-bottom:10px;">
-        <textarea id="gasScriptArea" readonly rows="6"
+        <textarea id="gasScriptArea" readonly rows="8"
           style="width:100%;font-size:10px;font-family:monospace;background:#1E293B;color:#7DD3FC;border:none;border-radius:6px;padding:10px;resize:none;box-sizing:border-box;line-height:1.5;">function doPost(e){
   try{
+    if(!e||!e.postData||!e.postData.contents) throw new Error('リクエストデータなし');
     var d=JSON.parse(e.postData.contents);
     var ss=SpreadsheetApp.getActiveSpreadsheet();
     var sh=ss.getSheetByName('連絡帳');
-    if(!sh){sh=ss.insertSheet('連絡帳');sh.appendRow(['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時']);sh.setFrozenRows(1);}
-    sh.appendRow([d.date,d.user,d.conditions,d.activities,d.meal,d.medication,d.vital,d.message,new Date().toLocaleString('ja-JP')]);
-    return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
+    if(!sh){
+      sh=ss.insertSheet('連絡帳');
+      sh.appendRow(['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時']);
+      sh.setFrozenRows(1);
+      sh.setColumnWidth(8,400);
+    }
+    sh.appendRow([d.date||'',d.user||'',d.conditions||'',d.activities||'',d.meal||'',d.medication||'',d.vital||'',d.message||'',new Date().toLocaleString('ja-JP')]);
+    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
   }catch(err){
-    return ContentService.createTextOutput('{"ok":false,"error":"'+err.message+'"}').setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.message})).setMimeType(ContentService.MimeType.JSON);
   }
+}
+function doGet(e){
+  return ContentService.createTextOutput(JSON.stringify({ok:true,status:'connected'})).setMimeType(ContentService.MimeType.JSON);
 }</textarea>
         <button onclick="copyGasScript()" style="position:absolute;top:6px;right:6px;padding:4px 10px;background:#1E6FD9;color:#fff;border:none;border-radius:4px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;">コピー</button>
       </div>
@@ -525,8 +534,13 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
       <input type="text" class="login-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..."
         style="font-size:12px;letter-spacing:0;text-align:left;margin-bottom:8px;"
         onkeydown="if(event.key==='Enter') saveGasUrl()">
-      <button onclick="saveGasUrl()"
-        style="width:100%;padding:11px;background:#16A34A;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">スプレッドシートURLを保存</button>
+      <div style="display:flex;gap:8px;margin-bottom:4px;">
+        <button onclick="saveGasUrl()"
+          style="flex:1;padding:11px;background:#16A34A;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">URLを保存</button>
+        <button onclick="testGasConnection()"
+          style="flex:1;padding:11px;background:#1E6FD9;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">🔍 接続テスト</button>
+      </div>
+      <div id="gasTestResult" style="display:none;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-top:4px;"></div>
     </div>
 
     <!-- ② Notion（オプション） -->
@@ -1179,6 +1193,7 @@ function openNotionModal() {
   document.getElementById('gasUrlInput').value = getGasUrl();
   document.getElementById('notionTokenInput').value = getNotionToken();
   document.getElementById('notionModalError').style.display = 'none';
+  document.getElementById('gasTestResult').style.display = 'none';
   document.getElementById('notionModal').style.display = 'flex';
 }
 
@@ -1212,6 +1227,47 @@ function copyGasScript() {
   const text = document.getElementById('gasScriptArea').value;
   navigator.clipboard.writeText(text).then(() => showToast('📋 スクリプトをコピーしました'))
     .catch(() => { document.getElementById('gasScriptArea').select(); showToast('📋 テキストを選択しました'); });
+}
+
+// ── GAS接続テスト ──
+async function testGasConnection() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  const resultEl = document.getElementById('gasTestResult');
+  if (!url.startsWith('https://script.google.com/')) {
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#FEF2F2';
+    resultEl.style.color = '#DC2626';
+    resultEl.textContent = '❌ URLを先に入力してください';
+    return;
+  }
+  resultEl.style.display = 'block';
+  resultEl.style.background = '#F1F5F9';
+  resultEl.style.color = '#475569';
+  resultEl.textContent = '🔄 テスト中...';
+  try {
+    const testPayload = JSON.stringify({date:'テスト',user:'テスト接続',conditions:'',activities:'',meal:'',medication:'',vital:'',message:'接続テスト（このデータは削除してください）'});
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: testPayload
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = null; }
+    if (data && data.ok) {
+      resultEl.style.background = '#F0FDF4';
+      resultEl.style.color = '#166534';
+      resultEl.textContent = '✅ 接続成功！スプレッドシートに書き込めました。URLを保存してください。';
+    } else {
+      resultEl.style.background = '#FEF2F2';
+      resultEl.style.color = '#DC2626';
+      resultEl.textContent = `❌ GASエラー: ${data?.error || text.slice(0,200) || 'レスポンス不正'}`;
+    }
+  } catch(e) {
+    resultEl.style.background = '#FEF2F2';
+    resultEl.style.color = '#DC2626';
+    resultEl.textContent = `❌ 接続失敗: ${e.message}。デプロイ設定を確認してください（アクセス：全員）`;
+  }
 }
 
 // ── Googleスプレッドシート保存（GAS経由・CORS問題なし）──
@@ -1248,9 +1304,14 @@ async function saveToSheets() {
       headers: { 'Content-Type': 'text/plain' }, // シンプルリクエスト（CORSプリフライト不要）
       body: payload
     });
-    const data = await res.json();
+    if (!res.ok) throw new Error(`HTTPエラー ${res.status}: ${res.statusText}`);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch {
+      throw new Error(`レスポンスがJSONではありません: ${text.slice(0,100)}`);
+    }
     if (data.ok) return true;
-    throw new Error(data.error || '不明なエラー');
+    throw new Error(data.error || '不明なGASエラー');
   } catch(e) {
     throw new Error(`スプレッドシート保存エラー: ${e.message}`);
   }
