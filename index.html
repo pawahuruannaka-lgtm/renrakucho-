@@ -741,35 +741,18 @@ async function initApp() {
 
 // ══ 利用者取得 ══
 async function loadUsersFromNotion() {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_API_KEY,
-        'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-        mcp_servers: [{ type:'url', url:'https://mcp.notion.com/mcp', name:'notion-mcp', authorization_token:NOTION_TOKEN }],
-        messages: [{ role:'user', content:
-          `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）から登録されている利用者名を全件取得してください。
-「通常時の連絡帳」などテンプレートページは除外してください。
-結果をJSON配列のみで返してください。例: ["石井 美弥子", "田中 太郎"]
-重複は除去してください。JSONのみ返し、説明文・マークダウン記号は不要です。` }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content?.map(c => c.text||'').join('') || '';
-    const match = text.match(/\[[\s\S]*?\]/);
-    if (match) {
-      const names = [...new Set(JSON.parse(match[0]).filter(n =>
-        n && typeof n === 'string' && !n.includes('テンプレート') && !n.includes('通常時') && n.trim()
-      ))];
-      if (names.length > 0) { renderUserButtons(names); populateSearchSelect(names); return; }
-    }
-    throw new Error('no users');
-  } catch(e) {
-    showManualInput();
-  }
+  // 固定利用者リスト（Notionから事前取得済み）
+  const FIXED_USERS = [
+    '石井 美弥子', '堀米 亜希子', '横塚 時也', '富田 蓮人',
+    '岡田 正末', '佐藤 嵩彦', '櫻井 憲二', '萩原 奈津樹',
+    '山田 美穂', '藤里 直美', '金井 直美', '柴山 美香',
+    '堀川 明美', '岡田 成弘', '杉山 幸美'
+  ];
+  // 即座に固定リストで表示（ローディング不要）
+  renderUserButtons(FIXED_USERS);
+  populateSearchSelect(FIXED_USERS);
 }
+
 
 function renderUserButtons(names) {
   document.getElementById('userLoadingMsg').style.display = 'none';
