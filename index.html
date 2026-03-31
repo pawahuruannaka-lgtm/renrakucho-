@@ -2,439 +2,572 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ぱわふる安中 連絡帳</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ぱわふる安中｜連絡帳入力</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+:root {
+  --primary: #1E6FD9;
+  --primary-light: #EBF3FF;
+  --accent: #F97316;
+  --accent-light: #FFF4EB;
+  --success: #16A34A;
+  --success-light: #F0FDF4;
+  --warn: #CA8A04;
+  --warn-light: #FEFCE8;
+  --danger: #DC2626;
+  --danger-light: #FEF2F2;
+  --reccheck: #7C3AED;
+  --reccheck-light: #F5F3FF;
+  --bullet: #0891B2;
+  --bullet-light: #ECFEFF;
+  --edit: #D97706;
+  --edit-light: #FFFBEB;
+  --bg: #F1F5F9;
+  --card: #FFFFFF;
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 8px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
 
-  :root {
-    --primary: #2563eb;
-    --primary-light: #dbeafe;
-    --success: #16a34a;
-    --success-light: #dcfce7;
-    --warning: #d97706;
-    --warning-light: #fef3c7;
-    --danger: #dc2626;
-    --danger-light: #fee2e2;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-500: #6b7280;
-    --gray-700: #374151;
-    --gray-900: #111827;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
-  }
+/* ─── ログイン画面 ─── */
+#loginScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1E6FD9 50%, #7C3AED 100%);
+}
+.login-card {
+  background: white; border-radius: 20px;
+  padding: 44px 40px; width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
+}
+.login-logo { font-size: 48px; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+.login-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: left; margin-bottom: 6px; letter-spacing: .05em; }
+.login-input {
+  width: 100%; padding: 14px 16px; font-size: 18px; letter-spacing: .2em;
+  border: 2px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; outline: none; text-align: center;
+  transition: border-color .15s; margin-bottom: 20px;
+}
+.login-input:focus { border-color: var(--primary); }
+.login-btn {
+  width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #7C3AED);
+  color: white; border: none; border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .2s; letter-spacing: .03em;
+}
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,111,217,.4); }
+.login-error {
+  margin-top: 14px; padding: 10px 14px; background: var(--danger-light);
+  border: 1px solid #FCA5A5; border-radius: var(--radius-sm);
+  color: var(--danger); font-size: 13px; font-weight: 600; display: none;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* ─── タブナビ ─── */
+#appScreen { display: none; }
+.header {
+  background: var(--primary); color: #fff; padding: 0 24px; height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 16px rgba(30,111,217,.35);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-title { font-size: 16px; font-weight: 700; }
+.header-sub { font-size: 11px; opacity: .8; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 12px; opacity: .9; font-weight: 600; }
+.logout-btn {
+  padding: 6px 12px; background: rgba(255,255,255,.2); color: white;
+  border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.logout-btn:hover { background: rgba(255,255,255,.3); }
 
-  body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background: #f0f4f8;
-    color: var(--gray-900);
-    min-height: 100vh;
-    padding-bottom: 40px;
-  }
+/* タブ */
+.tab-nav {
+  display: flex; background: white;
+  border-bottom: 2px solid var(--border);
+  position: sticky; top: 58px; z-index: 199;
+}
+.tab-btn {
+  flex: 1; padding: 13px 8px; font-size: 13px; font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif; border: none; background: none;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all .2s;
+}
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--primary-light); }
 
-  /* ヘッダー */
-  .header {
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-    color: white;
-    padding: 16px 20px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-  }
-  .header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.3px; }
-  .header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 
-  /* タブ切り替え */
-  .tabs {
-    display: flex;
-    background: white;
-    border-bottom: 2px solid var(--gray-200);
-    position: sticky;
-    top: 68px;
-    z-index: 99;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 12px 8px;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    border: none;
-    background: none;
-    color: var(--gray-500);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-    transition: all 0.2s;
-  }
-  .tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-    background: var(--primary-light);
-  }
+/* ─── 共通レイアウト ─── */
+.container { max-width: 820px; margin: 0 auto; padding: 20px 16px 100px; }
+@media (min-width: 640px) {
+  .container { padding: 28px 32px 80px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .full-col { grid-column: 1 / -1; }
+}
 
-  /* コンテンツ */
-  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
-  .panel { display: none; }
-  .panel.active { display: block; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.card-header {
+  padding: 13px 18px 11px; font-size: 12px; font-weight: 700; color: var(--primary);
+  letter-spacing: .06em; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+}
+.card-body { padding: 14px 16px; }
 
-  /* カード */
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 12px;
-  }
+/* ─── ローディング（利用者取得中） ─── */
+.user-loading {
+  padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.mini-spinner {
+  width: 18px; height: 18px; border: 3px solid var(--border);
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: spin .7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ロック画面 */
-  #lockScreen {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    flex-direction: column;
-    gap: 24px;
-    padding: 40px;
-  }
-  .lock-logo { font-size: 48px; }
-  .lock-title { color: white; font-size: 20px; font-weight: 700; text-align: center; }
-  .lock-sub { color: rgba(255,255,255,0.7); font-size: 13px; text-align: center; }
-  .pin-inputs { display: flex; gap: 12px; }
-  .pin-input {
-    width: 52px; height: 60px;
-    border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.15);
-    color: white;
-    font-size: 24px;
-    font-weight: 700;
-    text-align: center;
-    font-family: inherit;
-    outline: none;
-    -webkit-text-security: disc;
-  }
-  .pin-input:focus { border-color: white; background: rgba(255,255,255,0.25); }
-  .lock-error { color: #fca5a5; font-size: 13px; text-align: center; min-height: 18px; }
+/* ─── 利用者グリッド ─── */
+.user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.user-btn {
+  padding: 11px 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .15s;
+  text-align: center; line-height: 1.35;
+}
+.user-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.user-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
 
-  /* フォーム要素 */
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--gray-700);
-    margin-bottom: 6px;
-    letter-spacing: 0.3px;
-  }
-  select, input[type="text"], input[type="date"], textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--gray-900);
-    background: var(--gray-50);
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  select:focus, input:focus, textarea:focus {
-    border-color: var(--primary);
-    background: white;
-  }
-  textarea { resize: vertical; min-height: 80px; }
-  .form-row { margin-bottom: 14px; }
+/* ─── 入力フィールド ─── */
+.field-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .05em; margin-bottom: 6px; }
+.input {
+  width: 100%; padding: 10px 13px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 14px; color: var(--text);
+  background: #fff; outline: none; transition: border-color .15s;
+}
+.input:focus { border-color: var(--primary); }
+.input::placeholder { color: #adb5bd; }
+textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 
-  /* チップ選択 */
-  .chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .chip {
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1.5px solid var(--gray-200);
-    font-size: 13px;
-    font-family: inherit;
-    background: white;
-    color: var(--gray-700);
-    cursor: pointer;
-    transition: all 0.15s;
-    user-select: none;
-  }
-  .chip:hover { border-color: var(--primary); color: var(--primary); }
-  .chip.selected {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-  }
-  .chip.selected.good { background: var(--success); border-color: var(--success); }
-  .chip.selected.warn { background: var(--warning); border-color: var(--warning); }
-  .chip.selected.bad { background: var(--danger); border-color: var(--danger); }
+/* ─── バイタル ─── */
+.vital-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.vital-item { display: flex; flex-direction: column; gap: 4px; }
+.vital-unit { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+.section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .08em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.recheck-toggle {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  padding: 10px 13px; border: 2px dashed var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 600;
+  transition: all .15s; user-select: none;
+}
+.recheck-toggle:hover { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); }
+.recheck-toggle.active { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); border-style: solid; }
+.recheck-toggle .t-icon { font-size: 16px; transition: transform .2s; }
+.recheck-toggle.active .t-icon { transform: rotate(45deg); }
+.recheck-area { display: none; margin-top: 12px; padding: 14px; background: var(--reccheck-light); border: 2px solid var(--reccheck); border-radius: var(--radius-sm); }
+.recheck-area.show { display: block; }
+.recheck-label { font-size: 11px; font-weight: 700; color: var(--reccheck); letter-spacing: .06em; margin-bottom: 10px; }
 
-  /* ボタン */
-  .btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-primary { background: var(--primary); color: white; }
-  .btn-primary:hover { background: #1d4ed8; }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-success { background: var(--success); color: white; }
-  .btn-success:hover { background: #15803d; }
-  .btn-outline {
-    background: white;
-    color: var(--primary);
-    border: 1.5px solid var(--primary);
-  }
-  .btn-warning { background: var(--warning); color: white; }
-  .btn-sm {
-    width: auto;
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* ─── チップ ─── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  padding: 7px 13px; border: 2px solid var(--border); border-radius: 999px;
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer;
+  transition: all .15s; user-select: none; white-space: nowrap;
+}
+.chip:active { transform: scale(.95); }
+.chip.sel-blue   { border-color: var(--primary);  background: var(--primary-light);  color: var(--primary);  font-weight: 700; }
+.chip.sel-green  { border-color: var(--success);  background: var(--success-light);  color: var(--success);  font-weight: 700; }
+.chip.sel-warn   { border-color: var(--warn);     background: var(--warn-light);     color: var(--warn);     font-weight: 700; }
+.chip.sel-red    { border-color: var(--danger);   background: var(--danger-light);   color: var(--danger);   font-weight: 700; }
 
-  /* 検索 */
-  .search-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .search-box select { flex: 1; }
-  .search-box button { white-space: nowrap; }
+/* ─── 食事 ─── */
+.meal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+@media (min-width: 640px) { .meal-grid { grid-template-columns: repeat(8, 1fr); } }
+.meal-btn {
+  padding: 9px 4px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: center; transition: all .15s;
+}
+.meal-btn.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 700; }
 
-  /* 検索結果リスト */
-  .result-list { display: flex; flex-direction: column; gap: 8px; }
-  .result-item {
-    background: white;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 10px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .result-item:hover { border-color: var(--primary); background: var(--primary-light); }
-  .result-item:active { transform: scale(0.99); }
-  .result-name { font-size: 14px; font-weight: 700; color: var(--gray-900); }
-  .result-date { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
-  .result-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-  .result-tag {
-    font-size: 11px;
-    padding: 2px 8px;
-    background: var(--primary-light);
-    color: var(--primary);
-    border-radius: 10px;
-    font-weight: 500;
-  }
+/* ─── モード切り替え ─── */
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+.mode-btn {
+  flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--text-muted); cursor: pointer; transition: all .15s; text-align: center;
+}
+.mode-btn.active { border-color: var(--bullet); background: var(--bullet-light); color: var(--bullet); }
 
-  /* トースト */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--gray-900);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 9998;
-    transition: transform 0.3s ease;
-    white-space: nowrap;
-    box-shadow: var(--shadow-md);
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.success { background: var(--success); }
-  #toast.error { background: var(--danger); }
+/* ─── 箇条書き ─── */
+.bullet-card { border: 2px solid var(--bullet) !important; }
+.bullet-card .card-header { color: var(--bullet); }
+.bullet-hint {
+  margin-top: 8px; padding: 10px 12px;
+  background: var(--bullet-light); border-radius: var(--radius-sm);
+  font-size: 11px; color: var(--bullet); line-height: 1.8;
+}
 
-  /* ステータスバッジ */
-  .badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .badge-edit { background: var(--warning-light); color: var(--warning); }
+/* ─── 生成ボタン ─── */
+.generate-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, #5B21B6 100%);
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 16px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 18px rgba(30,111,217,.35);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all .2s; letter-spacing: .03em; margin-bottom: 14px;
+}
+.generate-btn:hover { transform: translateY(-1px); }
 
-  /* セパレータ */
-  hr { border: none; border-top: 1px solid var(--gray-100); margin: 16px 0; }
+/* ─── 結果カード ─── */
+.result-card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-md);
+  border: 2px solid var(--success); overflow: hidden; display: none; margin-bottom: 14px;
+}
+.result-card.show { display: block; animation: slideUp .35s ease; }
+@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.result-header {
+  padding: 12px 18px; background: var(--success-light); border-bottom: 1px solid #BBF7D0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.result-header-left { font-size: 13px; font-weight: 700; color: var(--success); }
+.result-header-right { font-size: 11px; color: var(--text-muted); }
+.result-text {
+  padding: 16px 18px; font-size: 14px; line-height: 1.9; color: var(--text);
+  white-space: pre-wrap; min-height: 80px; outline: none; cursor: text; background: #fff;
+}
+.result-text:focus { background: #FAFEFF; }
+.result-actions { padding: 12px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.action-btn {
+  flex: 1; min-width: 90px; padding: 11px 12px; border: none; border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center;
+  justify-content: center; gap: 5px; white-space: nowrap;
+}
+.btn-regen  { background: var(--primary-light); color: var(--primary); }
+.btn-copy   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-notion { background: #111; color: #fff; }
+.btn-next   { background: #7C3AED; color: #fff; }
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--gray-500);
-  }
-  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
+/* ─── 過去記録 ─── */
+.history-toggle {
+  font-size: 12px; font-weight: 700; color: var(--text-muted); background: none;
+  border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0;
+}
+.history-toggle:hover { color: var(--primary); }
+.history-toggle .arr { transition: transform .2s; display: inline-block; }
+.history-toggle.open .arr { transform: rotate(90deg); }
+.history-body { display: none; margin-top: 10px; }
+.history-body.open { display: block; }
+.history-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 7px; background: #FAFAFA; }
+.history-date { font-weight: 700; color: var(--text-muted); font-size: 11px; margin-bottom: 5px; }
+.history-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+.h-chip { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.h-chip-blue   { background: var(--primary-light); color: var(--primary); }
+.h-chip-green  { background: var(--success-light); color: var(--success); }
+.h-chip-orange { background: var(--accent-light); color: var(--accent); }
+.history-memo { color: var(--text-muted); font-size: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-  .loading { text-align: center; padding: 24px; color: var(--gray-500); font-size: 14px; }
+/* ─── 呼び出し・編集タブ ─── */
+.search-box { display: flex; gap: 8px; }
+.search-box select { flex: 1; }
+.search-btn {
+  padding: 10px 18px; background: var(--primary); color: white; border: none;
+  border-radius: var(--radius-sm); font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: background .15s;
+}
+.search-btn:hover { background: #1558b0; }
+
+.result-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.result-item {
+  background: white; border: 2px solid var(--border); border-radius: 10px;
+  padding: 13px 15px; cursor: pointer; transition: all .15s;
+}
+.result-item:hover { border-color: var(--primary); background: var(--primary-light); }
+.result-item-name { font-size: 14px; font-weight: 700; }
+.result-item-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.result-item-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.r-tag { font-size: 11px; padding: 2px 8px; background: var(--primary-light); color: var(--primary); border-radius: 10px; font-weight: 600; }
+
+.edit-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; background: var(--edit-light); border: 2px solid var(--edit);
+  border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--edit);
+  margin-bottom: 14px;
+}
+.back-btn {
+  padding: 8px 16px; background: white; color: var(--primary);
+  border: 2px solid var(--primary); border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.back-btn:hover { background: var(--primary-light); }
+
+.update-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--edit) 0%, #B45309 100%);
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all .2s; margin-bottom: 14px;
+}
+.update-btn:hover { transform: translateY(-1px); }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+
+/* ─── ローディングオーバーレイ ─── */
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 999; align-items: center; justify-content: center; }
+.loading-overlay.show { display: flex; }
+.loading-card { background: #fff; border-radius: var(--radius); padding: 32px 44px; text-align: center; box-shadow: var(--shadow-md); min-width: 220px; }
+.loading-ring { width: 46px; height: 46px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 16px; }
+.loading-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.loading-sub { font-size: 12px; color: var(--text-muted); }
+
+/* ─── トースト ─── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+  background: #1E293B; color: #fff; padding: 11px 22px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; opacity: 0; transition: all .3s;
+  z-index: 1000; white-space: nowrap; pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.badge-purple { background: var(--reccheck-light); color: var(--reccheck); }
+.badge-cyan   { background: var(--bullet-light);   color: var(--bullet); }
 </style>
 </head>
 <body>
 
-<!-- ロック画面 -->
-<div id="lockScreen">
-  <div class="lock-logo">🗒️</div>
-  <div class="lock-title">ぱわふる安中<br>連絡帳システム</div>
-  <div class="lock-sub">暗証番号を入力してください</div>
-  <div class="pin-inputs">
-    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p1">
-    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p2">
-    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p3">
-    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p4">
+<!-- ログイン画面 -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">📓</div>
+    <div class="login-title">ぱわふる安中</div>
+    <div class="login-sub">連絡帳入力システム</div>
+    <label class="login-label" for="pinInput">暗証番号を入力してください</label>
+    <input type="password" class="login-input" id="pinInput" maxlength="8"
+      placeholder="● ● ● ●" inputmode="numeric"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="loginError">❌ 暗証番号が違います</div>
   </div>
-  <div class="lock-error" id="lockError"></div>
 </div>
 
-<!-- メイン -->
-<div id="mainApp" style="display:none;">
+<!-- メインアプリ -->
+<div id="appScreen">
   <div class="header">
-    <h1>🗒️ ぱわふる安中 連絡帳</h1>
-    <p>連絡帳の入力・呼び出し・編集</p>
-  </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('new')">📝 新規入力</button>
-    <button class="tab-btn" onclick="switchTab('edit')">🔍 呼び出し・編集</button>
-  </div>
-
-  <!-- 新規入力パネル -->
-  <div class="content">
-    <div id="panelNew" class="panel active">
-
-      <div class="card">
-        <div class="card-title">基本情報</div>
-        <div class="form-row">
-          <label>利用者名 *</label>
-          <select id="userName">
-            <option value="">-- 選択してください --</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label>実施日 *</label>
-          <input type="date" id="date">
-        </div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">📓 連絡帳入力</div>
+        <div class="header-sub">ぱわふる安中</div>
       </div>
-
-      <div class="card">
-        <div class="card-title">バイタル</div>
-        <div class="form-row">
-          <label>バイタル（体温・血圧・脈拍など）</label>
-          <input type="text" id="vital" placeholder="例：体温36.5℃ 血圧120/80 脈拍72">
-        </div>
-        <div class="form-row">
-          <label>バイタル（再検）</label>
-          <input type="text" id="vital2" placeholder="再検した場合のみ入力">
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">体調</div>
-        <div class="chip-group" id="conditionChips">
-          <div class="chip good" data-val="良好">😊 良好</div>
-          <div class="chip warn" data-val="要観察">👀 要観察</div>
-          <div class="chip bad" data-val="体調不良">🤒 体調不良</div>
-          <div class="chip bad" data-val="気分不快">😣 気分不快</div>
-          <div class="chip warn" data-val="気分落ち気味">😔 気分落ち気味</div>
-          <div class="chip warn" data-val="気分高揚">😄 気分高揚</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">活動内容</div>
-        <div class="chip-group" id="activityChips">
-          <div class="chip" data-val="体操">🤸 体操</div>
-          <div class="chip" data-val="散歩">🚶 散歩</div>
-          <div class="chip" data-val="プリント(算数)">🔢 算数</div>
-          <div class="chip" data-val="プリント(国語)">📖 国語</div>
-          <div class="chip" data-val="プリント(漢字)">✏️ 漢字</div>
-          <div class="chip" data-val="プリント(社会)">🌏 社会</div>
-          <div class="chip" data-val="プリント(脳トレ)">🧠 脳トレ</div>
-          <div class="chip" data-val="プリント(美術)">🎨 美術</div>
-          <div class="chip" data-val="塗り絵">🖌️ 塗り絵</div>
-          <div class="chip" data-val="制作">✂️ 制作</div>
-          <div class="chip" data-val="運動レク">⚽ 運動レク</div>
-          <div class="chip" data-val="パズル">🧩 パズル</div>
-          <div class="chip" data-val="カラオケ">🎤 カラオケ</div>
-          <div class="chip" data-val="入浴">🛁 入浴</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">食事量</div>
-        <div class="chip-group" id="mealChips">
-          <div class="chip" data-val="完食">✅ 完食</div>
-          <div class="chip" data-val="8割">8割</div>
-          <div class="chip" data-val="6割">6割</div>
-          <div class="chip" data-val="半分量">半分</div>
-          <div class="chip" data-val="4割">4割</div>
-          <div class="chip" data-val="2割">2割</div>
-          <div class="chip" data-val="少量">少量</div>
-          <div class="chip" data-val="摂取なし">❌ なし</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">メモ・備考</div>
-        <textarea id="memo" placeholder="特記事項・申し送り事項など"></textarea>
-      </div>
-
-      <button class="btn btn-primary" onclick="saveNew()" id="btnSaveNew">
-        💾 Notionに保存する
-      </button>
     </div>
+    <div class="header-right">
+      <div class="header-date" id="headerDate"></div>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
 
-    <!-- 呼び出し・編集パネル -->
-    <div id="panelEdit" class="panel">
+  <!-- タブナビ -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchMainTab('new', this)">📝 新規入力</button>
+    <button class="tab-btn" onclick="switchMainTab('edit', this)">🔍 呼び出し・編集</button>
+  </div>
 
-      <!-- 検索エリア -->
-      <div id="searchArea">
-        <div class="card">
-          <div class="card-title">利用者名で検索</div>
-          <div class="search-box">
-            <select id="searchUser">
-              <option value="">-- 利用者を選択 --</option>
-            </select>
-            <button class="btn btn-primary btn-sm" onclick="searchRecords()">🔍 検索</button>
+  <!-- ══ 新規入力タブ ══ -->
+  <div id="tabNew" class="tab-panel active">
+    <div class="container">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeNormal" onclick="setMode('normal')">
+          ✅ 通常入力モード<br><span style="font-size:10px;font-weight:400;">チェック＋メモ</span>
+        </button>
+        <button class="mode-btn" id="modeBullet" onclick="setMode('bullet')">
+          📝 箇条書きモード<br><span style="font-size:10px;font-weight:400;">素早く箇条書きで入力</span>
+        </button>
+      </div>
+      <div class="two-col">
+        <div>
+          <!-- 利用者選択 -->
+          <div class="card">
+            <div class="card-header">👤 利用者</div>
+            <div class="card-body">
+              <div id="userLoadingMsg" class="user-loading"><span class="mini-spinner"></span> 利用者情報を取得中...</div>
+              <div class="user-grid" id="userGrid" style="display:none;"></div>
+            </div>
+          </div>
+          <!-- 実施日 -->
+          <div class="card">
+            <div class="card-header">📅 実施日</div>
+            <div class="card-body"><input type="date" class="input" id="dateInput"></div>
+          </div>
+          <!-- バイタル -->
+          <div class="card">
+            <div class="card-header">🩺 バイタル</div>
+            <div class="card-body">
+              <div class="section-title">📊 初回測定</div>
+              <div class="vital-grid">
+                <div class="vital-item"><label class="field-label">体温</label><input type="number" class="input" id="temp" placeholder="36.5" step="0.1"><div class="vital-unit">℃</div></div>
+                <div class="vital-item"><label class="field-label">血圧</label><input type="text" class="input" id="bp" placeholder="120/80"><div class="vital-unit">mmHg</div></div>
+                <div class="vital-item"><label class="field-label">脈拍</label><input type="number" class="input" id="pulse" placeholder="70"><div class="vital-unit">回/分</div></div>
+              </div>
+              <div class="recheck-toggle" id="recheckToggle" onclick="toggleRecheck()">
+                <span class="t-icon">＋</span><span>再検あり</span><span class="badge badge-purple">任意</span>
+              </div>
+              <div class="recheck-area" id="recheckArea">
+                <div class="recheck-label">🔄 再検測定値</div>
+                <div class="vital-grid">
+                  <div class="vital-item"><label class="field-label">体温（再）</label><input type="number" class="input" id="temp2" placeholder="36.5" step="0.1"><div class="vital-unit">℃</div></div>
+                  <div class="vital-item"><label class="field-label">血圧（再）</label><input type="text" class="input" id="bp2" placeholder="120/80"><div class="vital-unit">mmHg</div></div>
+                  <div class="vital-item"><label class="field-label">脈拍（再）</label><input type="number" class="input" id="pulse2" placeholder="70"><div class="vital-unit">回/分</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <!-- 通常モード -->
+          <div id="normalModeArea">
+            <div class="card">
+              <div class="card-header">😊 体調・気分</div>
+              <div class="card-body">
+                <div class="chips">
+                  <div class="chip" onclick="toggleChip(this,'condition','良好','sel-green')">😊 良好</div>
+                  <div class="chip" onclick="toggleChip(this,'condition','要観察','sel-warn')">👀 要観察</div>
+                  <div class="chip" onclick="toggleChip(this,'condition','体調不良','sel-red')">🤒 体調不良</div>
+                  <div class="chip" onclick="toggleChip(this,'condition','気分不快','sel-warn')">😞 気分不快</div>
+                  <div class="chip" onclick="toggleChip(this,'condition','気分落ち気味','sel-warn')">😔 落ち気味</div>
+                  <div class="chip" onclick="toggleChip(this,'condition','気分高揚','sel-blue')">😄 気分高揚</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">🏃 本日の活動</div>
+              <div class="card-body">
+                <div class="chips">
+                  <div class="chip" onclick="toggleChip(this,'activity','体操','sel-blue')">🤸 体操</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','散歩','sel-blue')">🚶 散歩</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(算数)','sel-blue')">🔢 算数</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(国語)','sel-blue')">📖 国語</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(漢字)','sel-blue')">✏️ 漢字</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(社会)','sel-blue')">🌏 社会</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(脳トレ)','sel-blue')">🧠 脳トレ</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','プリント(美術)','sel-blue')">🎨 美術</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','塗り絵','sel-blue')">🖌️ 塗り絵</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','制作','sel-blue')">🛠️ 制作</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','運動レク','sel-blue')">⚽ 運動レク</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','パズル','sel-blue')">🧩 パズル</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','カラオケ','sel-blue')">🎤 カラオケ</div>
+                  <div class="chip" onclick="toggleChip(this,'activity','入浴','sel-blue')">🛁 入浴</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">🍱 食事摂取量</div>
+              <div class="card-body">
+                <div class="meal-grid">
+                  <button class="meal-btn" onclick="selectMeal(this,'完食')">完食</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'8割')">8割</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'6割')">6割</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'半分量')">半分量</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'4割')">4割</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'2割')">2割</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'少量')">少量</button>
+                  <button class="meal-btn" onclick="selectMeal(this,'摂取なし')">摂取なし</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">💬 メモ・特記事項 <span class="badge badge-cyan">箇条書き可</span></div>
+              <div class="card-body">
+                <textarea class="input" id="memoInput" rows="4" placeholder="箇条書きでも文章でもOKです&#10;例：&#10;・声が大きくなる場面あり&#10;・他利用者と笑顔で交流できた"></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- 箇条書きモード -->
+          <div id="bulletModeArea" style="display:none;">
+            <div class="card bullet-card">
+              <div class="card-header">📝 箇条書きで今日の様子を入力 <span class="badge badge-cyan">AIが変換</span></div>
+              <div class="card-body">
+                <textarea class="input" id="bulletInput" rows="8" placeholder="今日の様子を箇条書きで入力&#10;&#10;・体操で元気よく体を動かした&#10;・昼食は完食。水分もよく摂れた&#10;・午後は少し眠そうだったが休憩後に回復"></textarea>
+                <div class="bullet-hint"><strong>📌 ヒント</strong><br>・で始まる行を箇条書きとして認識します</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div id="searchResults">
+        <!-- 過去記録 -->
+        <div class="card full-col" id="historyCard" style="display:none;">
+          <div class="card-header">
+            <button class="history-toggle" id="historyToggle" onclick="toggleHistory()">
+              📋 過去の記録を参照 <span class="arr">▶</span>
+            </button>
+          </div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+            <div class="history-body" id="historyBody">
+              <div id="historyList" style="color:var(--text-muted);font-size:13px;padding:8px 0;">読み込み中...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生成ボタン -->
+        <div class="full-col">
+          <button class="generate-btn" onclick="generateText()">✨ AIで連絡帳を生成する</button>
+        </div>
+
+        <!-- 結果 -->
+        <div class="result-card full-col" id="resultCard">
+          <div class="result-header">
+            <div class="result-header-left">✅ 生成完了 — クリックして編集できます</div>
+            <div class="result-header-right">Ctrl+A で全選択</div>
+          </div>
+          <div class="result-text" id="resultText" contenteditable="true"></div>
+          <div class="result-actions">
+            <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
+            <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
+            <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notionに保存</button>
+            <button class="action-btn btn-next" onclick="resetForm()">👤 次の利用者へ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 呼び出し・編集タブ ══ -->
+  <div id="tabEdit" class="tab-panel">
+    <div class="container">
+
+      <!-- 検索エリア -->
+      <div id="editSearchArea">
+        <div class="card">
+          <div class="card-header">🔍 利用者名で過去の記録を検索</div>
+          <div class="card-body">
+            <div class="search-box">
+              <select class="input" id="searchUserSelect">
+                <option value="">-- 利用者を選択してください --</option>
+              </select>
+              <button class="search-btn" onclick="searchRecords()">検索</button>
+            </div>
+          </div>
+        </div>
+        <div id="searchResultArea">
           <div class="empty-state">
             <div class="icon">🔍</div>
             <p>利用者名を選んで「検索」を押してください</p>
@@ -442,437 +575,558 @@
         </div>
       </div>
 
-      <!-- 編集フォーム（検索結果を選んだ後に表示） -->
-      <div id="editArea" style="display:none;">
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span class="badge badge-edit">✏️ 編集中</span>
-            <button class="btn btn-outline btn-sm" onclick="backToSearch()">← 検索に戻る</button>
-          </div>
-          <div class="card-title">基本情報</div>
-          <div class="form-row">
-            <label>利用者名</label>
-            <input type="text" id="editUserName" readonly style="background:#f3f4f6;">
-          </div>
-          <div class="form-row">
-            <label>実施日</label>
-            <input type="date" id="editDate">
-          </div>
+      <!-- 編集フォーム（記録選択後に表示） -->
+      <div id="editFormArea" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+          <div class="edit-badge">✏️ 編集モード — 内容を変更して「更新保存」を押してください</div>
+          <button class="back-btn" onclick="backToSearch()">← 検索に戻る</button>
         </div>
 
-        <div class="card">
-          <div class="card-title">バイタル</div>
-          <div class="form-row">
-            <label>バイタル</label>
-            <input type="text" id="editVital" placeholder="例：体温36.5℃ 血圧120/80 脈拍72">
+        <div class="two-col">
+          <div>
+            <div class="card">
+              <div class="card-header">👤 利用者・日付</div>
+              <div class="card-body">
+                <div style="margin-bottom:12px;">
+                  <label class="field-label">利用者名</label>
+                  <input type="text" class="input" id="editUserName" readonly style="background:#f3f4f6; color:#666;">
+                </div>
+                <div>
+                  <label class="field-label">実施日</label>
+                  <input type="date" class="input" id="editDate">
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">🩺 バイタル</div>
+              <div class="card-body">
+                <div style="margin-bottom:12px;">
+                  <label class="field-label">バイタル（初回）</label>
+                  <input type="text" class="input" id="editVital" placeholder="例：T 36.5℃  BP 120/80  P 70回/分">
+                </div>
+                <div>
+                  <label class="field-label">バイタル（再検）</label>
+                  <input type="text" class="input" id="editVital2" placeholder="再検がある場合のみ">
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="form-row">
-            <label>バイタル（再検）</label>
-            <input type="text" id="editVital2">
+          <div>
+            <div class="card">
+              <div class="card-header">😊 体調・気分</div>
+              <div class="card-body">
+                <div class="chips" id="editConditionChips">
+                  <div class="chip" onclick="toggleEditChip(this,'condition','良好','sel-green')">😊 良好</div>
+                  <div class="chip" onclick="toggleEditChip(this,'condition','要観察','sel-warn')">👀 要観察</div>
+                  <div class="chip" onclick="toggleEditChip(this,'condition','体調不良','sel-red')">🤒 体調不良</div>
+                  <div class="chip" onclick="toggleEditChip(this,'condition','気分不快','sel-warn')">😞 気分不快</div>
+                  <div class="chip" onclick="toggleEditChip(this,'condition','気分落ち気味','sel-warn')">😔 落ち気味</div>
+                  <div class="chip" onclick="toggleEditChip(this,'condition','気分高揚','sel-blue')">😄 気分高揚</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">🏃 活動内容</div>
+              <div class="card-body">
+                <div class="chips" id="editActivityChips">
+                  <div class="chip" onclick="toggleEditChip(this,'activity','体操','sel-blue')">🤸 体操</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','散歩','sel-blue')">🚶 散歩</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(算数)','sel-blue')">🔢 算数</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(国語)','sel-blue')">📖 国語</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(漢字)','sel-blue')">✏️ 漢字</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(社会)','sel-blue')">🌏 社会</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(脳トレ)','sel-blue')">🧠 脳トレ</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','プリント(美術)','sel-blue')">🎨 美術</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','塗り絵','sel-blue')">🖌️ 塗り絵</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','制作','sel-blue')">🛠️ 制作</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','運動レク','sel-blue')">⚽ 運動レク</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','パズル','sel-blue')">🧩 パズル</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','カラオケ','sel-blue')">🎤 カラオケ</div>
+                  <div class="chip" onclick="toggleEditChip(this,'activity','入浴','sel-blue')">🛁 入浴</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">🍱 食事摂取量</div>
+              <div class="card-body">
+                <div class="meal-grid" id="editMealBtns">
+                  <button class="meal-btn" onclick="selectEditMeal(this,'完食')">完食</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'8割')">8割</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'6割')">6割</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'半分量')">半分量</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'4割')">4割</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'2割')">2割</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'少量')">少量</button>
+                  <button class="meal-btn" onclick="selectEditMeal(this,'摂取なし')">摂取なし</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="full-col">
+            <div class="card">
+              <div class="card-header">💬 メモ・特記事項</div>
+              <div class="card-body">
+                <textarea class="input" id="editMemo" rows="4"></textarea>
+              </div>
+            </div>
+            <button class="update-btn" onclick="updateRecord()">🔄 この記録を更新して保存する</button>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-title">体調</div>
-          <div class="chip-group" id="editConditionChips">
-            <div class="chip good" data-val="良好">😊 良好</div>
-            <div class="chip warn" data-val="要観察">👀 要観察</div>
-            <div class="chip bad" data-val="体調不良">🤒 体調不良</div>
-            <div class="chip bad" data-val="気分不快">😣 気分不快</div>
-            <div class="chip warn" data-val="気分落ち気味">😔 気分落ち気味</div>
-            <div class="chip warn" data-val="気分高揚">😄 気分高揚</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">活動内容</div>
-          <div class="chip-group" id="editActivityChips">
-            <div class="chip" data-val="体操">🤸 体操</div>
-            <div class="chip" data-val="散歩">🚶 散歩</div>
-            <div class="chip" data-val="プリント(算数)">🔢 算数</div>
-            <div class="chip" data-val="プリント(国語)">📖 国語</div>
-            <div class="chip" data-val="プリント(漢字)">✏️ 漢字</div>
-            <div class="chip" data-val="プリント(社会)">🌏 社会</div>
-            <div class="chip" data-val="プリント(脳トレ)">🧠 脳トレ</div>
-            <div class="chip" data-val="プリント(美術)">🎨 美術</div>
-            <div class="chip" data-val="塗り絵">🖌️ 塗り絵</div>
-            <div class="chip" data-val="制作">✂️ 制作</div>
-            <div class="chip" data-val="運動レク">⚽ 運動レク</div>
-            <div class="chip" data-val="パズル">🧩 パズル</div>
-            <div class="chip" data-val="カラオケ">🎤 カラオケ</div>
-            <div class="chip" data-val="入浴">🛁 入浴</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">食事量</div>
-          <div class="chip-group" id="editMealChips">
-            <div class="chip" data-val="完食">✅ 完食</div>
-            <div class="chip" data-val="8割">8割</div>
-            <div class="chip" data-val="6割">6割</div>
-            <div class="chip" data-val="半分量">半分</div>
-            <div class="chip" data-val="4割">4割</div>
-            <div class="chip" data-val="2割">2割</div>
-            <div class="chip" data-val="少量">少量</div>
-            <div class="chip" data-val="摂取なし">❌ なし</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">メモ・備考</div>
-          <textarea id="editMemo"></textarea>
-        </div>
-
-        <button class="btn btn-warning" onclick="updateRecord()" id="btnUpdate">
-          🔄 この記録を更新して保存する
-        </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- トースト -->
-<div id="toast"></div>
+<!-- ローディング -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-card">
+    <div class="loading-ring"></div>
+    <div class="loading-title" id="loadingTitle">処理中...</div>
+    <div class="loading-sub" id="loadingSub">少々お待ちください</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// 設定（現在のアプリと同じAPIキー・DB IDを使用）
-// ============================================================
-const CONFIG = {
-  NOTION_TOKEN: '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',
-  DATABASE_ID: '325d6592-945a-801b-adc1-f66af0b5cfb0',
-  PIN: '0375',
-  PROXY: 'https://notion-proxy-seven.vercel.app/api/notion',
-  USERS: [
-    '石井 美弥子', '堀米 亜希子', '横塚 時也', '富田 蓮人',
-    '岡田 正末', '佐藤 嵩彦', '櫻井 憲二', '萩原 奈津樹',
-    '山田 美穂', '藤里 直美', '金井 直美', '柴山 美香',
-    '堀川 明美', '岡田 成弘', '杉山 幸美'
-  ]
-};
+// ══ 設定 ══
+const ANTHROPIC_API_KEY = "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";
+const NOTION_TOKEN      = "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";
+const NOTION_PROXY      = "https://notion-proxy-seven.vercel.app/api/notion";
+const PIN_CODE          = "0375";
+const RENRAKUCHO_DB_ID  = "325d6592-945a-80cc-8820-000bfbd88d5a";
+const USERS_DB_ID       = "1d9d6592-945a-813b-8784-000b28bd54fd";
 
-// ============================================================
-// 状態管理
-// ============================================================
-let currentPageId = null;  // 編集中のページID
+// ══ 状態 ══
+let selectedUser = null, selectedConditions = [], selectedActivities = [], selectedMeal = null;
+let historyData = [], recheckOpen = false, currentMode = 'normal';
+let editPageId = null, editConditions = [], editActivities = [], editMeal = null;
 
-// ============================================================
-// ロック画面
-// ============================================================
-const pins = [1,2,3,4].map(i => document.getElementById('p'+i));
-
-pins.forEach((pin, i) => {
-  pin.addEventListener('input', () => {
-    pin.value = pin.value.replace(/[^0-9]/g, '');
-    if (pin.value.length === 1 && i < 3) pins[i+1].focus();
-    if (pins.every(p => p.value.length === 1)) checkPin();
-  });
-  pin.addEventListener('keydown', e => {
-    if (e.key === 'Backspace' && !pin.value && i > 0) pins[i-1].focus();
-  });
-});
-
-function checkPin() {
-  const entered = pins.map(p => p.value).join('');
-  if (entered === CONFIG.PIN) {
-    document.getElementById('lockScreen').style.opacity = '0';
-    setTimeout(() => {
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-    }, 300);
-  } else {
-    document.getElementById('lockError').textContent = '暗証番号が違います';
-    pins.forEach(p => p.value = '');
-    pins[0].focus();
-    setTimeout(() => document.getElementById('lockError').textContent = '', 2000);
-  }
-}
-
-// ============================================================
-// 初期化
-// ============================================================
-window.addEventListener('load', () => {
-  // 今日の日付をセット
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('date').value = today;
-
-  // 利用者名をセレクトに追加
-  const selects = ['userName', 'searchUser'];
-  selects.forEach(id => {
-    const sel = document.getElementById(id);
-    CONFIG.USERS.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u;
-      opt.textContent = u;
-      sel.appendChild(opt);
-    });
-  });
-
-  // チップ初期化
-  initChips('conditionChips');
-  initChips('activityChips');
-  initChips('mealChips');
-  initChips('editConditionChips');
-  initChips('editActivityChips');
-  initChips('editMealChips');
-
-  pins[0].focus();
-});
-
-function initChips(groupId) {
-  document.querySelectorAll('#' + groupId + ' .chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const isMulti = groupId.includes('activity') || groupId.includes('Activity')
-                   || groupId.includes('meal') || groupId.includes('Meal')
-                   || groupId.includes('condition') || groupId.includes('Condition');
-      if (!isMulti) {
-        document.querySelectorAll('#' + groupId + ' .chip').forEach(c => c.classList.remove('selected'));
-      }
-      chip.classList.toggle('selected');
-    });
-  });
-}
-
-// ============================================================
-// タブ切り替え
-// ============================================================
-function switchTab(tab) {
+// ══ タブ切り替え ══
+function switchMainTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
 }
 
-// ============================================================
-// 新規保存
-// ============================================================
-async function saveNew() {
-  const name = document.getElementById('userName').value;
-  const date = document.getElementById('date').value;
-  if (!name) { showToast('利用者名を選択してください', 'error'); return; }
-  if (!date) { showToast('実施日を入力してください', 'error'); return; }
+// ══ ログイン ══
+function doLogin() {
+  if (document.getElementById('pinInput').value.trim() === PIN_CODE) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    initApp();
+  } else {
+    const err = document.getElementById('loginError');
+    err.style.display = 'block';
+    document.getElementById('pinInput').value = '';
+    setTimeout(() => err.style.display = 'none', 2500);
+  }
+}
+function doLogout() {
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pinInput').value = '';
+  resetForm();
+}
 
-  const btn = document.getElementById('btnSaveNew');
-  btn.disabled = true;
-  btn.textContent = '保存中...';
+// ══ 初期化 ══
+async function initApp() {
+  const today = new Date();
+  document.getElementById('dateInput').value = today.toISOString().split('T')[0];
+  document.getElementById('headerDate').textContent =
+    today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  await loadUsersFromNotion();
+}
 
-  const data = collectFormData('');
-
+// ══ 利用者取得 ══
+async function loadUsersFromNotion() {
   try {
-    const res = await notionRequest('POST', '/pages', {
-      parent: { database_id: CONFIG.DATABASE_ID },
-      properties: buildProperties(name, date, data)
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_API_KEY,
+        'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        mcp_servers: [{ type:'url', url:'https://mcp.notion.com/mcp', name:'notion-mcp', authorization_token:NOTION_TOKEN }],
+        messages: [{ role:'user', content:
+          `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）から登録されている利用者名を全件取得してください。
+「通常時の連絡帳」などテンプレートページは除外してください。
+結果をJSON配列のみで返してください。例: ["石井 美弥子", "田中 太郎"]
+重複は除去してください。JSONのみ返し、説明文・マークダウン記号は不要です。` }]
+      })
     });
-    if (res.id) {
-      showToast('✅ 保存しました！', 'success');
-      resetNewForm();
-    } else {
-      throw new Error('保存に失敗しました');
+    const data = await res.json();
+    const text = data.content?.map(c => c.text||'').join('') || '';
+    const match = text.match(/\[[\s\S]*?\]/);
+    if (match) {
+      const names = [...new Set(JSON.parse(match[0]).filter(n =>
+        n && typeof n === 'string' && !n.includes('テンプレート') && !n.includes('通常時') && n.trim()
+      ))];
+      if (names.length > 0) { renderUserButtons(names); populateSearchSelect(names); return; }
+    }
+    throw new Error('no users');
+  } catch(e) {
+    showManualInput();
+  }
+}
+
+function renderUserButtons(names) {
+  document.getElementById('userLoadingMsg').style.display = 'none';
+  const grid = document.getElementById('userGrid');
+  grid.style.display = 'grid'; grid.innerHTML = '';
+  names.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'user-btn'; btn.textContent = name;
+    btn.onclick = () => selectUser(name, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function populateSearchSelect(names) {
+  const sel = document.getElementById('searchUserSelect');
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name; sel.appendChild(opt);
+  });
+}
+
+function showManualInput() {
+  document.getElementById('userLoadingMsg').style.display = 'none';
+  const grid = document.getElementById('userGrid');
+  grid.style.display = 'block';
+  grid.innerHTML = `
+    <div style="font-size:12px;color:var(--warn);margin-bottom:8px;padding:8px 10px;background:var(--warn-light);border-radius:var(--radius-sm);">⚠️ 利用者情報を取得できませんでした。直接入力してください。</div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="manualUserInput" class="input" placeholder="利用者名（例：山田 太郎）" style="flex:1;">
+      <button onclick="confirmManualUser()" style="padding:10px 14px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:700;cursor:pointer;">確定</button>
+    </div>
+    <div id="manualUserSelected" style="margin-top:8px;font-size:13px;color:var(--success);font-weight:700;display:none;"></div>`;
+}
+function confirmManualUser() {
+  const name = document.getElementById('manualUserInput').value.trim();
+  if (!name) { showToast('⚠️ 利用者名を入力してください'); return; }
+  selectedUser = name;
+  document.getElementById('manualUserSelected').textContent = `✅ 選択中：${name}`;
+  document.getElementById('manualUserSelected').style.display = 'block';
+  document.getElementById('historyCard').style.display = 'block';
+  loadHistory(name);
+}
+
+// ══ 新規フォーム操作 ══
+function selectUser(name, btn) {
+  selectedUser = name;
+  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('historyCard').style.display = 'block';
+  loadHistory(name);
+}
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeNormal').classList.toggle('active', mode === 'normal');
+  document.getElementById('modeBullet').classList.toggle('active', mode === 'bullet');
+  document.getElementById('normalModeArea').style.display = mode === 'normal' ? 'block' : 'none';
+  document.getElementById('bulletModeArea').style.display = mode === 'bullet' ? 'block' : 'none';
+}
+function toggleRecheck() {
+  recheckOpen = !recheckOpen;
+  document.getElementById('recheckToggle').classList.toggle('active', recheckOpen);
+  document.getElementById('recheckArea').classList.toggle('show', recheckOpen);
+  if (!recheckOpen) ['temp2','bp2','pulse2'].forEach(id => document.getElementById(id).value = '');
+}
+function toggleChip(el, type, value, cls) {
+  if (type === 'condition') {
+    const i = selectedConditions.indexOf(value);
+    if (i >= 0) { selectedConditions.splice(i,1); el.className='chip'; }
+    else { selectedConditions.push(value); el.className=`chip ${cls}`; }
+  } else {
+    const i = selectedActivities.indexOf(value);
+    if (i >= 0) { selectedActivities.splice(i,1); el.className='chip'; }
+    else { selectedActivities.push(value); el.className=`chip ${cls}`; }
+  }
+}
+function selectMeal(el, val) {
+  selectedMeal = val;
+  document.querySelectorAll('.meal-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function toggleHistory() {
+  document.getElementById('historyToggle').classList.toggle('open');
+  document.getElementById('historyBody').classList.toggle('open');
+}
+
+// ══ 過去記録ロード ══
+async function loadHistory(userName) {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ 読み込み中...</div>';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_API_KEY,
+        'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        mcp_servers: [{ type:'url', url:'https://mcp.notion.com/mcp', name:'notion-mcp', authorization_token:NOTION_TOKEN }],
+        messages: [{ role:'user', content:
+          `Notionの連絡帳DB（collection ID: ${RENRAKUCHO_DB_ID}）から利用者「${userName}」の直近3件を取得。
+各レコード: 実施日、体調、活動、マルチセレクト（食事量）、メモ。
+JSON配列のみで返してください:
+[{"date":"YYYY-MM-DD","condition":["良好"],"activity":["体操"],"meal":"完食","memo":"内容"}]
+データがない場合は[]を返してください。` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || '';
+    const match = text.match(/\[[\s\S]*?\]/);
+    if (match) {
+      const records = JSON.parse(match[0]);
+      historyData = records;
+      if (!records.length) { list.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>'; return; }
+      list.innerHTML = records.map(h=>`
+        <div class="history-item">
+          <div class="history-date">📅 ${fmtDate(h.date)}</div>
+          <div class="history-chips">
+            ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
+            ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
+            ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
+          </div>
+          <div class="history-memo">${h.memo||''}</div>
+        </div>`).join('');
     }
   } catch(e) {
-    showToast('❌ エラー：' + e.message, 'error');
+    list.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⚠️ 取得に失敗しました</div>';
   }
-
-  btn.disabled = false;
-  btn.textContent = '💾 Notionに保存する';
 }
 
-// ============================================================
-// 検索（利用者名で絞り込み）
-// ============================================================
+// ══ AI文章生成 ══
+async function generateText() {
+  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+  const temp=document.getElementById('temp').value, bp=document.getElementById('bp').value, pulse=document.getElementById('pulse').value;
+  const temp2=document.getElementById('temp2').value, bp2=document.getElementById('bp2').value, pulse2=document.getElementById('pulse2').value;
+  const date=document.getElementById('dateInput').value;
+  const vital1=buildVital(temp,bp,pulse), vital2=recheckOpen?buildVital(temp2,bp2,pulse2):'';
+  const recheckNote=vital2?`\n【再検バイタル】${vital2}（再検があった旨を文中に自然に含めること）`:'';
+  const histCtx=historyData.length>0?'\n\n【直近の記録（参考）】\n'+historyData.map(h=>`${h.date}: 体調=${(h.condition||[]).join('・')} 活動=${(h.activity||[]).join('・')} 食事=${h.meal||''} メモ:${h.memo||''}`).join('\n'):'';
+  let prompt;
+  if (currentMode==='bullet') {
+    const bulletText=document.getElementById('bulletInput').value.trim();
+    if (!bulletText) { showToast('⚠️ 箇条書きを入力してください'); return; }
+    prompt=`あなたは生活介護事業所「ぱわふる安中」の支援員です。以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+【利用者】${selectedUser}
+【実施日】${fmtDate(date)}
+【バイタル（初回）】${vital1||'記録なし'}${recheckNote}
+【今日の様子（箇条書き）】
+${bulletText}${histCtx}
+【ルール】利用者の家族向け連絡帳として丁寧で温かみのある文体。200〜350字程度。バイタル数値は文中に含めず状態として表現。「本日は〜」で書き出す。敬語・丁寧語。連続した文章で出力。`;
+  } else {
+    const memo=document.getElementById('memoInput').value.trim();
+    const hasBullets=memo&&memo.split('\n').some(l=>l.trim().startsWith('・')||l.trim().startsWith('-'));
+    const memoInst=hasBullets?'【担当者メモ（箇条書き）】以下を自然な文章に展開して組み込む:\n'+memo:`【担当者メモ】${memo||'なし'}`;
+    prompt=`あなたは生活介護事業所「ぱわふる安中」の支援員です。以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+【利用者】${selectedUser}
+【実施日】${fmtDate(date)}
+【バイタル（初回）】${vital1||'記録なし'}${recheckNote}
+【体調・気分】${selectedConditions.length?selectedConditions.join('・'):'記録なし'}
+【本日の活動】${selectedActivities.length?selectedActivities.join('、'):'記録なし'}
+【食事摂取量】${selectedMeal||'記録なし'}
+${memoInst}${histCtx}
+【ルール】利用者の家族向け連絡帳として丁寧で温かみのある文体。200〜350字程度。体調→活動→食事の順。バイタル数値は文中に含めず状態として表現。「本日は〜」で書き出す。敬語・丁寧語。連続した文章で出力。`;
+  }
+  showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json(); const text=data.content?.[0]?.text?.trim()||'';
+    hideLoading();
+    if (!text) throw new Error('empty');
+    document.getElementById('resultText').textContent=text;
+    const rc=document.getElementById('resultCard'); rc.classList.add('show');
+    rc.scrollIntoView({behavior:'smooth',block:'nearest'});
+    showToast('✨ 文章を生成しました！');
+  } catch(e) { hideLoading(); showToast('❌ 生成に失敗しました'); }
+}
+
+// ══ Notion保存（新規） ══
+async function saveToNotion() {
+  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
+  const memo=document.getElementById('resultText').textContent;
+  const date=document.getElementById('dateInput').value;
+  const vital1=buildVital(document.getElementById('temp').value,document.getElementById('bp').value,document.getElementById('pulse').value);
+  const vital2=recheckOpen?buildVital(document.getElementById('temp2').value,document.getElementById('bp2').value,document.getElementById('pulse2').value):'';
+  showLoading('Notionに保存中...','連絡帳データベースに登録しています');
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+        mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp',authorization_token:NOTION_TOKEN}],
+        messages:[{role:'user',content:`Notionの連絡帳DB（collection ID: ${RENRAKUCHO_DB_ID}）に以下のデータを1件登録してください。
+利用者名: ${selectedUser}
+実施日: ${date}
+バイタル: ${vital1}
+バイタル（再検）: ${vital2}
+体調: ${selectedConditions.join(', ')}
+活動: ${selectedActivities.join(', ')}
+マルチセレクト（食事量）: ${selectedMeal||''}
+メモ: ${memo}
+登録完了したら「登録完了」とだけ返してください。`}]})
+    });
+    const data=await res.json(); hideLoading();
+    const txt=data.content?.map(c=>c.text||'').join('')||'';
+    if (txt.includes('完了')||txt.includes('登録')||txt.includes('作成')) {
+      showToast('✅ Notionに保存しました！'); setTimeout(resetForm,1800);
+    } else { showToast('✅ 処理しました。Notionをご確認ください'); }
+  } catch(e) { hideLoading(); showToast('❌ 保存に失敗しました'); }
+}
+
+// ══ 呼び出し・編集 ══
 async function searchRecords() {
-  const user = document.getElementById('searchUser').value;
-  if (!user) { showToast('利用者名を選択してください', 'error'); return; }
-
-  const resultsDiv = document.getElementById('searchResults');
-  resultsDiv.innerHTML = '<div class="loading">🔍 検索中...</div>';
-
+  const user=document.getElementById('searchUserSelect').value;
+  if (!user) { showToast('⚠️ 利用者名を選択してください'); return; }
+  const area=document.getElementById('searchResultArea');
+  area.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted)"><span class="mini-spinner"></span> 検索中...</div>';
   try {
-    const res = await notionRequest('POST', `/databases/${CONFIG.DATABASE_ID}/query`, {
-      filter: {
-        property: '利用者名',
-        title: { contains: user }
-      },
-      sorts: [{ property: '実施日', direction: 'descending' }],
-      page_size: 20
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,
+        mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp',authorization_token:NOTION_TOKEN}],
+        messages:[{role:'user',content:`Notionの連絡帳DB（collection ID: ${RENRAKUCHO_DB_ID}）から利用者「${user}」の記録を直近20件取得してください。
+各レコードのページID（NotionのページURL末尾の32文字）と以下フィールドを取得:
+実施日、体調（multi_select）、活動（multi_select）、マルチセレクト（食事量）、バイタル、バイタル（再検）、メモ。
+以下のJSON配列のみで返してください:
+[{"pageId":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","date":"YYYY-MM-DD","condition":["良好"],"activity":["体操"],"meal":"完食","vital":"T 36.5℃","vital2":"","memo":"内容"}]
+JSONのみ返し、説明文・マークダウン不要。データがない場合は[]。`}]})
     });
-
-    if (!res.results || res.results.length === 0) {
-      resultsDiv.innerHTML = `
-        <div class="empty-state">
-          <div class="icon">📭</div>
-          <p>「${user}」の記録が見つかりませんでした</p>
-        </div>`;
-      return;
-    }
-
-    resultsDiv.innerHTML = `<div class="result-list"></div>`;
-    const list = resultsDiv.querySelector('.result-list');
-
-    res.results.forEach(page => {
-      const props = page.properties;
-      const name = props['利用者名']?.title?.[0]?.plain_text || '';
-      const date = props['実施日']?.date?.start || '日付なし';
-      const condition = (props['体調']?.multi_select || []).map(s => s.name).join('、');
-      const activity = (props['活動']?.multi_select || []).map(s => s.name).join('、');
-      const meal = (props['マルチセレクト']?.multi_select || []).map(s => s.name).join('、');
-
-      const item = document.createElement('div');
-      item.className = 'result-item';
-      item.innerHTML = `
-        <div class="result-name">📋 ${name}</div>
-        <div class="result-date">📅 ${date}</div>
-        <div class="result-tags">
-          ${condition ? `<span class="result-tag">体調：${condition}</span>` : ''}
-          ${activity ? `<span class="result-tag">活動：${activity}</span>` : ''}
-          ${meal ? `<span class="result-tag">食事：${meal}</span>` : ''}
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'';
+    const match=text.match(/\[[\s\S]*?\]/);
+    if (!match) throw new Error('parse error');
+    const records=JSON.parse(match[0]);
+    if (!records.length) { area.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>「'+user+'」の記録が見つかりませんでした</p></div>'; return; }
+    area.innerHTML='<div class="result-list">'+records.map(r=>`
+      <div class="result-item" onclick="openEditForm(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <div class="result-item-name">📋 ${r.date||'日付不明'}</div>
+        <div class="result-item-date">👤 ${user}</div>
+        <div class="result-item-tags">
+          ${(r.condition||[]).map(c=>`<span class="r-tag">${c}</span>`).join('')}
+          ${(r.activity||[]).map(a=>`<span class="r-tag">${a}</span>`).join('')}
+          ${r.meal?`<span class="r-tag">${r.meal}</span>`:''}
         </div>
-      `;
-      item.addEventListener('click', () => openEditForm(page));
-      list.appendChild(item);
-    });
+      </div>`).join('')+'</div>';
+  } catch(e) { area.innerHTML='<div class="empty-state"><div class="icon">❌</div><p>検索に失敗しました</p></div>'; }
+}
 
-  } catch(e) {
-    resultsDiv.innerHTML = `<div class="empty-state"><p>❌ エラー：${e.message}</p></div>`;
+function openEditForm(record) {
+  editPageId=record.pageId;
+  editConditions=[...(record.condition||[])];
+  editActivities=[...(record.activity||[])];
+  editMeal=record.meal||null;
+  document.getElementById('editUserName').value=document.getElementById('searchUserSelect').value;
+  document.getElementById('editDate').value=record.date||'';
+  document.getElementById('editVital').value=record.vital||'';
+  document.getElementById('editVital2').value=record.vital2||'';
+  document.getElementById('editMemo').value=record.memo||'';
+  // チップ反映
+  document.querySelectorAll('#editConditionChips .chip').forEach(chip=>{
+    chip.className='chip'; if(editConditions.includes(chip.dataset.val||chip.textContent.replace(/[^\w ]/g,'').trim())) chip.className='chip sel-green';
+  });
+  document.querySelectorAll('#editActivityChips .chip').forEach(chip=>{
+    chip.className='chip'; if(editActivities.includes(chip.dataset.val||chip.textContent.replace(/[^\w ]/g,'').trim())) chip.className='chip sel-blue';
+  });
+  document.querySelectorAll('#editMealBtns .meal-btn').forEach(btn=>{
+    btn.classList.toggle('selected', btn.textContent.trim()===editMeal);
+  });
+  document.getElementById('editSearchArea').style.display='none';
+  document.getElementById('editFormArea').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleEditChip(el, type, value, cls) {
+  if (type==='condition') {
+    const i=editConditions.indexOf(value);
+    if(i>=0){editConditions.splice(i,1);el.className='chip';}
+    else{editConditions.push(value);el.className=`chip ${cls}`;}
+  } else {
+    const i=editActivities.indexOf(value);
+    if(i>=0){editActivities.splice(i,1);el.className='chip';}
+    else{editActivities.push(value);el.className=`chip ${cls}`;}
   }
 }
-
-// ============================================================
-// 編集フォームを開く
-// ============================================================
-function openEditForm(page) {
-  currentPageId = page.id;
-  const props = page.properties;
-
-  // 値を反映
-  document.getElementById('editUserName').value = props['利用者名']?.title?.[0]?.plain_text || '';
-  document.getElementById('editDate').value = props['実施日']?.date?.start || '';
-  document.getElementById('editVital').value = props['バイタル']?.rich_text?.[0]?.plain_text || '';
-  document.getElementById('editVital2').value = props['バイタル（再検）']?.rich_text?.[0]?.plain_text || '';
-  document.getElementById('editMemo').value = props['メモ']?.rich_text?.[0]?.plain_text || '';
-
-  // チップを反映
-  const conditions = (props['体調']?.multi_select || []).map(s => s.name);
-  setChips('editConditionChips', conditions);
-
-  const activities = (props['活動']?.multi_select || []).map(s => s.name);
-  setChips('editActivityChips', activities);
-
-  const meals = (props['マルチセレクト']?.multi_select || []).map(s => s.name);
-  setChips('editMealChips', meals);
-
-  // 表示切り替え
-  document.getElementById('searchArea').style.display = 'none';
-  document.getElementById('editArea').style.display = 'block';
-  window.scrollTo(0, 0);
+function selectEditMeal(el, val) {
+  editMeal=val;
+  document.querySelectorAll('#editMealBtns .meal-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
 }
-
-function setChips(groupId, values) {
-  document.querySelectorAll('#' + groupId + ' .chip').forEach(chip => {
-    chip.classList.toggle('selected', values.includes(chip.dataset.val));
-  });
-}
-
 function backToSearch() {
-  currentPageId = null;
-  document.getElementById('searchArea').style.display = 'block';
-  document.getElementById('editArea').style.display = 'none';
+  editPageId=null;
+  document.getElementById('editSearchArea').style.display='block';
+  document.getElementById('editFormArea').style.display='none';
 }
 
-// ============================================================
-// 更新保存
-// ============================================================
 async function updateRecord() {
-  if (!currentPageId) return;
-  const date = document.getElementById('editDate').value;
-  const name = document.getElementById('editUserName').value;
-  if (!date) { showToast('実施日を入力してください', 'error'); return; }
-
-  const btn = document.getElementById('btnUpdate');
-  btn.disabled = true;
-  btn.textContent = '更新中...';
-
-  const data = collectFormData('edit');
-
+  if (!editPageId) { showToast('⚠️ 記録を選択してください'); return; }
+  const date=document.getElementById('editDate').value;
+  const user=document.getElementById('editUserName').value;
+  const vital=document.getElementById('editVital').value;
+  const vital2=document.getElementById('editVital2').value;
+  const memo=document.getElementById('editMemo').value;
+  showLoading('記録を更新中...','Notionのデータを上書きしています');
   try {
-    const res = await notionRequest('PATCH', `/pages/${currentPageId}`, {
-      properties: buildProperties(name, date, data)
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,
+        mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp',authorization_token:NOTION_TOKEN}],
+        messages:[{role:'user',content:`NotionのページID「${editPageId}」のプロパティを以下の内容に更新してください。
+利用者名: ${user}
+実施日: ${date}
+バイタル: ${vital}
+バイタル（再検）: ${vital2}
+体調（multi_select）: ${editConditions.join(', ')}
+活動（multi_select）: ${editActivities.join(', ')}
+マルチセレクト（食事量）: ${editMeal||''}
+メモ: ${memo}
+更新完了したら「更新完了」とだけ返してください。`}]})
     });
-    if (res.id) {
-      showToast('✅ 記録を更新しました！', 'success');
-      backToSearch();
-    } else {
-      throw new Error('更新に失敗しました');
-    }
-  } catch(e) {
-    showToast('❌ エラー：' + e.message, 'error');
-  }
-
-  btn.disabled = false;
-  btn.textContent = '🔄 この記録を更新して保存する';
+    const data=await res.json(); hideLoading();
+    const txt=data.content?.map(c=>c.text||'').join('')||'';
+    if(txt.includes('完了')||txt.includes('更新')||txt.includes('成功')){
+      showToast('✅ 記録を更新しました！');
+      setTimeout(()=>backToSearch(),1500);
+    } else { showToast('✅ 処理しました。Notionをご確認ください'); }
+  } catch(e) { hideLoading(); showToast('❌ 更新に失敗しました'); }
 }
 
-// ============================================================
-// ユーティリティ
-// ============================================================
-function collectFormData(prefix) {
-  const p = prefix ? prefix.charAt(0).toUpperCase() + prefix.slice(1) : '';
-  const getChips = id => Array.from(document.querySelectorAll(`#${id} .chip.selected`)).map(c => c.dataset.val);
-
-  return {
-    vital: document.getElementById(prefix ? 'editVital' : 'vital').value,
-    vital2: document.getElementById(prefix ? 'editVital2' : 'vital2').value,
-    memo: document.getElementById(prefix ? 'editMemo' : 'memo').value,
-    conditions: getChips(prefix ? 'editConditionChips' : 'conditionChips'),
-    activities: getChips(prefix ? 'editActivityChips' : 'activityChips'),
-    meals: getChips(prefix ? 'editMealChips' : 'mealChips'),
-  };
+// ══ コピー ══
+async function copyText() {
+  const text=document.getElementById('resultText').textContent;
+  try { await navigator.clipboard.writeText(text); showToast('📋 コピーしました'); }
+  catch { const el=document.getElementById('resultText'); const r=document.createRange(); r.selectNodeContents(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); showToast('📋 テキストを選択しました'); }
 }
 
-function buildProperties(name, date, data) {
-  const props = {
-    '利用者名': { title: [{ text: { content: name } }] },
-    '実施日': { date: { start: date } },
-    'バイタル': { rich_text: [{ text: { content: data.vital } }] },
-    'バイタル（再検）': { rich_text: [{ text: { content: data.vital2 } }] },
-    'メモ': { rich_text: [{ text: { content: data.memo } }] },
-    '体調': { multi_select: data.conditions.map(n => ({ name: n })) },
-    '活動': { multi_select: data.activities.map(n => ({ name: n })) },
-    'マルチセレクト': { multi_select: data.meals.map(n => ({ name: n })) },
-  };
-  return props;
+// ══ リセット ══
+function resetForm() {
+  selectedUser=null; selectedConditions=[]; selectedActivities=[]; selectedMeal=null; historyData=[];
+  document.querySelectorAll('.user-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('#tabNew .chip').forEach(c=>c.className='chip');
+  document.querySelectorAll('#tabNew .meal-btn').forEach(b=>b.classList.remove('selected'));
+  ['temp','bp','pulse','temp2','bp2','pulse2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('memoInput').value='';
+  document.getElementById('bulletInput').value='';
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('historyCard').style.display='none';
+  if(recheckOpen) toggleRecheck();
+  document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
+  setMode('normal'); window.scrollTo({top:0,behavior:'smooth'});
+  showToast('🎉 入力をリセットしました');
 }
 
-function resetNewForm() {
-  document.getElementById('userName').value = '';
-  document.getElementById('date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('vital').value = '';
-  document.getElementById('vital2').value = '';
-  document.getElementById('memo').value = '';
-  document.querySelectorAll('#panelNew .chip').forEach(c => c.classList.remove('selected'));
-}
-
-async function notionRequest(method, path, body) {
-  const res = await fetch(CONFIG.PROXY, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      method,
-      path,
-      token: CONFIG.NOTION_TOKEN,
-      body: body || {}
-    })
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = type ? `show ${type}` : 'show';
-  setTimeout(() => t.className = type, 3000);
-}
+// ══ ユーティリティ ══
+function buildVital(temp,bp,pulse){ return[temp?`T ${temp}℃`:'',bp?`BP ${bp}`:'',pulse?`P ${pulse}回/分`:''].filter(Boolean).join('  '); }
+function fmtDate(str){ if(!str)return''; const d=new Date(str+'T00:00:00'); return d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'}); }
+function showLoading(title,sub){ document.getElementById('loadingTitle').textContent=title; document.getElementById('loadingSub').textContent=sub; document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading(){ document.getElementById('loadingOverlay').classList.remove('show'); }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
 </script>
 </body>
 </html>
