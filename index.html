@@ -690,7 +690,8 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 
 <script>
 // ══ 設定 ══
-const ANTHROPIC_API_KEY = "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";
+const ANTHROPIC_API_KEY = "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"; // AI生成はGeminiに移行
+const GEMINI_API_KEY = "AIzaSyD-nRxh_NptMhMEO7SXXMU2eLzgG4NRPyo"; // ← ここにGemini APIキーを入れる
 const NOTION_TOKEN      = "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";
 const NOTION_PROXY      = "https://notion-proxy-seven.vercel.app/api/notion";
 const PIN_CODE          = "0375";
@@ -917,11 +918,12 @@ ${memoInst}${histCtx}
   }
   showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.7}})
     });
-    const data=await res.json(); const text=data.content?.[0]?.text?.trim()||'';
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||'';
     hideLoading();
     if (!text) throw new Error('empty');
     document.getElementById('resultText').textContent=text;
@@ -940,26 +942,33 @@ async function saveToNotion() {
   const vital2=recheckOpen?buildVital(document.getElementById('temp2').value,document.getElementById('bp2').value,document.getElementById('pulse2').value):'';
   showLoading('Notionに保存中...','連絡帳データベースに登録しています');
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
-        mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp',authorization_token:NOTION_TOKEN}],
-        messages:[{role:'user',content:`Notionの連絡帳DB（collection ID: ${RENRAKUCHO_DB_ID}）に以下のデータを1件登録してください。
-利用者名: ${selectedUser}
-実施日: ${date}
-バイタル: ${vital1}
-バイタル（再検）: ${vital2}
-体調: ${selectedConditions.join(', ')}
-活動: ${selectedActivities.join(', ')}
-マルチセレクト（食事量）: ${selectedMeal||''}
-メモ: ${memo}
-登録完了したら「登録完了」とだけ返してください。`}]})
+    const notionRes = await fetch('https://notion-proxy-seven.vercel.app/api/notion', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        method: 'POST',
+        path: '/pages',
+        token: NOTION_TOKEN,
+        body: {
+          parent: { database_id: RENRAKUCHO_DB_ID },
+          properties: {
+            '利用者名': { title: [{ text: { content: selectedUser } }] },
+            '実施日': { date: { start: date } },
+            'バイタル': { rich_text: [{ text: { content: vital1 } }] },
+            'バイタル（再検）': { rich_text: [{ text: { content: vital2 } }] },
+            '体調': { multi_select: selectedConditions.map(n=>({name:n})) },
+            '活動': { multi_select: selectedActivities.map(n=>({name:n})) },
+            'マルチセレクト': { multi_select: selectedMeal ? [{name:selectedMeal}] : [] },
+            'メモ': { rich_text: [{ text: { content: memo } }] }
+          }
+        }
+      })
     });
-    const data=await res.json(); hideLoading();
-    const txt=data.content?.map(c=>c.text||'').join('')||'';
-    if (txt.includes('完了')||txt.includes('登録')||txt.includes('作成')) {
+    const notionData = await notionRes.json();
+    hideLoading();
+    if(notionData.id){
       showToast('✅ Notionに保存しました！'); setTimeout(resetForm,1800);
-    } else { showToast('✅ 処理しました。Notionをご確認ください'); }
+    } else { showToast('❌ 保存に失敗しました。Notionをご確認ください'); }
   } catch(e) { hideLoading(); showToast('❌ 保存に失敗しました'); }
 }
 
@@ -1056,27 +1065,33 @@ async function updateRecord() {
   const memo=document.getElementById('editMemo').value;
   showLoading('記録を更新中...','Notionのデータを上書きしています');
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,
-        mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp',authorization_token:NOTION_TOKEN}],
-        messages:[{role:'user',content:`NotionのページID「${editPageId}」のプロパティを以下の内容に更新してください。
-利用者名: ${user}
-実施日: ${date}
-バイタル: ${vital}
-バイタル（再検）: ${vital2}
-体調（multi_select）: ${editConditions.join(', ')}
-活動（multi_select）: ${editActivities.join(', ')}
-マルチセレクト（食事量）: ${editMeal||''}
-メモ: ${memo}
-更新完了したら「更新完了」とだけ返してください。`}]})
+    const notionRes = await fetch('https://notion-proxy-seven.vercel.app/api/notion', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        method: 'PATCH',
+        path: `/pages/${editPageId}`,
+        token: NOTION_TOKEN,
+        body: {
+          properties: {
+            '利用者名': { title: [{ text: { content: user } }] },
+            '実施日': { date: { start: date } },
+            'バイタル': { rich_text: [{ text: { content: vital } }] },
+            'バイタル（再検）': { rich_text: [{ text: { content: vital2 } }] },
+            '体調': { multi_select: editConditions.map(n=>({name:n})) },
+            '活動': { multi_select: editActivities.map(n=>({name:n})) },
+            'マルチセレクト': { multi_select: editMeal ? [{name:editMeal}] : [] },
+            'メモ': { rich_text: [{ text: { content: memo } }] }
+          }
+        }
+      })
     });
-    const data=await res.json(); hideLoading();
-    const txt=data.content?.map(c=>c.text||'').join('')||'';
-    if(txt.includes('完了')||txt.includes('更新')||txt.includes('成功')){
+    const notionData = await notionRes.json();
+    hideLoading();
+    if(notionData.id){
       showToast('✅ 記録を更新しました！');
       setTimeout(()=>backToSearch(),1500);
-    } else { showToast('✅ 処理しました。Notionをご確認ください'); }
+    } else { showToast('❌ 更新に失敗しました'); }
   } catch(e) { hideLoading(); showToast('❌ 更新に失敗しました'); }
 }
 
