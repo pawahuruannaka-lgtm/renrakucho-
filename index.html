@@ -2,2049 +2,876 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>ぱわふる安中｜連絡帳入力</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ぱわふる安中 連絡帳</title>
 <style>
-:root {
-  --primary: #1E6FD9;
-  --primary-light: #EBF3FF;
-  --accent: #F97316;
-  --accent-light: #FFF4EB;
-  --success: #16A34A;
-  --success-light: #F0FDF4;
-  --warn: #CA8A04;
-  --warn-light: #FEFCE8;
-  --danger: #DC2626;
-  --danger-light: #FEF2F2;
-  --reccheck: #7C3AED;
-  --reccheck-light: #F5F3FF;
-  --bullet: #0891B2;
-  --bullet-light: #ECFEFF;
-  --bg: #F1F5F9;
-  --card: #FFFFFF;
-  --text: #0F172A;
-  --text-muted: #64748B;
-  --border: #E2E8F0;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 1px 8px rgba(0,0,0,0.07);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
-/* ─── ログイン・セットアップ共通背景 ─── */
-#loginScreen, #setupScreen {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 20px;
-  background: linear-gradient(135deg, #1E3A8A 0%, #1E6FD9 50%, #7C3AED 100%);
-}
-#setupScreen { display: none; position: fixed; inset: 0; z-index: 300; flex-direction: column; }
-.login-card {
-  background: white; border-radius: 20px;
-  padding: 44px 40px; width: 100%; max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
-}
-.login-logo { font-size: 48px; margin-bottom: 8px; }
-.login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
-.login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
-.login-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: left; margin-bottom: 6px; letter-spacing: .05em; }
-.login-input {
-  width: 100%; padding: 14px 16px; font-size: 18px; letter-spacing: .2em;
-  border: 2px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Noto Sans JP', sans-serif; outline: none; text-align: center;
-  transition: border-color .15s; margin-bottom: 20px;
-}
-.login-input:focus { border-color: var(--primary); }
-.login-btn {
-  width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #7C3AED);
-  color: white; border: none; border-radius: var(--radius-sm);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all .2s; letter-spacing: .03em;
-}
-.login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,111,217,.4); }
-.login-btn:active { transform: translateY(0); }
-.login-error {
-  margin-top: 14px; padding: 10px 14px; background: var(--danger-light);
-  border: 1px solid #FCA5A5; border-radius: var(--radius-sm);
-  color: var(--danger); font-size: 13px; font-weight: 600; display: none;
-}
-.login-hint { margin-top: 16px; font-size: 11px; color: var(--text-muted); }
+  :root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --warning: #d97706;
+    --warning-light: #fef3c7;
+    --danger: #dc2626;
+    --danger-light: #fee2e2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  }
 
-/* ─── メインアプリ ─── */
-#appScreen { display: none; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-.header {
-  background: var(--primary); color: #fff; padding: 0 24px; height: 58px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 200;
-  box-shadow: 0 2px 16px rgba(30,111,217,.35);
-}
-.header-left { display: flex; align-items: center; gap: 12px; }
-.header-title { font-size: 16px; font-weight: 700; }
-.header-sub { font-size: 11px; opacity: .8; margin-top: 1px; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.header-date { font-size: 12px; opacity: .9; font-weight: 600; }
-.logout-btn {
-  padding: 6px 12px; background: rgba(255,255,255,.2); color: white;
-  border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
-  font-family: 'Noto Sans JP', sans-serif; font-size: 11px; font-weight: 600;
-  cursor: pointer; transition: background .15s;
-}
-.logout-btn:hover { background: rgba(255,255,255,.3); }
-
-.container { max-width: 820px; margin: 0 auto; padding: 20px 16px 100px; }
-@media (min-width: 640px) {
-  .container { padding: 28px 32px 80px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .full-col { grid-column: 1 / -1; }
-}
-
-.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
-.card-header {
-  padding: 13px 18px 11px; font-size: 12px; font-weight: 700; color: var(--primary);
-  letter-spacing: .06em; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 8px; text-transform: uppercase;
-}
-.card-body { padding: 14px 16px; }
-
-/* ─── ローディング（利用者取得中） ─── */
-.user-loading {
-  padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.mini-spinner {
-  width: 18px; height: 18px; border: 3px solid var(--border);
-  border-top-color: var(--primary); border-radius: 50%;
-  animation: spin .7s linear infinite; display: inline-block;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ─── 利用者グリッド ─── */
-.user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-.user-btn {
-  padding: 11px 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
-  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
-  font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .15s;
-  text-align: center; line-height: 1.35;
-}
-.user-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-.user-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
-.user-btn:active { transform: scale(.97); }
-
-/* ─── 入力フィールド ─── */
-.field-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .05em; margin-bottom: 6px; }
-.input {
-  width: 100%; padding: 10px 13px; border: 2px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 14px; color: var(--text);
-  background: #fff; outline: none; transition: border-color .15s;
-}
-.input:focus { border-color: var(--primary); }
-.input::placeholder { color: #adb5bd; }
-textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
-
-/* ─── バイタル ─── */
-.vital-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.vital-item { display: flex; flex-direction: column; gap: 4px; }
-.vital-unit { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
-.section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .08em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-
-.recheck-toggle {
-  display: flex; align-items: center; gap: 8px; margin-top: 12px;
-  padding: 10px 13px; border: 2px dashed var(--border); border-radius: var(--radius-sm);
-  cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 600;
-  transition: all .15s; user-select: none;
-}
-.recheck-toggle:hover { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); }
-.recheck-toggle.active { border-color: var(--reccheck); color: var(--reccheck); background: var(--reccheck-light); border-style: solid; }
-.recheck-toggle .t-icon { font-size: 16px; transition: transform .2s; }
-.recheck-toggle.active .t-icon { transform: rotate(45deg); }
-.recheck-area { display: none; margin-top: 12px; padding: 14px; background: var(--reccheck-light); border: 2px solid var(--reccheck); border-radius: var(--radius-sm); }
-.recheck-area.show { display: block; }
-.recheck-label { font-size: 11px; font-weight: 700; color: var(--reccheck); letter-spacing: .06em; margin-bottom: 10px; }
-
-/* ─── チップ ─── */
-.chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.chip {
-  padding: 7px 13px; border: 2px solid var(--border); border-radius: 999px;
-  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
-  font-weight: 500; color: var(--text-muted); cursor: pointer;
-  transition: all .15s; user-select: none; white-space: nowrap;
-}
-.chip:active { transform: scale(.95); }
-.chip.sel-blue   { border-color: var(--primary);  background: var(--primary-light);  color: var(--primary);  font-weight: 700; }
-.chip.sel-green  { border-color: var(--success);  background: var(--success-light);  color: var(--success);  font-weight: 700; }
-.chip.sel-warn   { border-color: var(--warn);     background: var(--warn-light);     color: var(--warn);     font-weight: 700; }
-.chip.sel-red    { border-color: var(--danger);   background: var(--danger-light);   color: var(--danger);   font-weight: 700; }
-
-/* ─── 食事 ─── */
-.meal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
-@media (min-width: 640px) { .meal-grid { grid-template-columns: repeat(8, 1fr); } }
-
-/* ─── 服薬チェック ─── */
-.med-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.med-btn {
-  padding: 9px 20px; border: 2px solid var(--border); border-radius: var(--radius-sm);
-  background: white; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: all .15s; color: var(--text-muted);
-}
-.med-btn:active { transform: scale(.95); }
-.med-btn.selected { border-color: var(--success); background: var(--success-light); color: var(--success); }
-.med-label { font-size: 12px; font-weight: 700; color: var(--text-muted); min-width: 52px; }
-.med-input {
-  flex: 1; min-width: 140px; padding: 9px 12px; border: 2px solid var(--border);
-  border-radius: var(--radius-sm); font-family: 'Noto Sans Jo', sans-serif; font-size: 14px;
-  outline: none; transition: border-color .15s;
-}
-.med-input:focus { border-color: var(--primary); }
-
-.meal-btn {
-  padding: 9px 4px; border: 2px solid var(--border); border-radius: var(--radius-sm);
-  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
-  font-weight: 500; color: var(--text-muted); cursor: pointer; text-align: center; transition: all .15s;
-}
-.meal-btn:active { transform: scale(.95); }
-.meal-btn.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 700; }
-
-/* ─── 箇条書きモードトグル ─── */
-.mode-toggle {
-  display: flex; gap: 8px; margin-bottom: 14px;
-}
-.mode-btn {
-  flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm);
-  background: #fff; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 700;
-  color: var(--text-muted); cursor: pointer; transition: all .15s; text-align: center;
-}
-.mode-btn.active { border-color: var(--bullet); background: var(--bullet-light); color: var(--bullet); }
-.mode-btn:hover:not(.active) { border-color: #94a3b8; }
-
-/* ─── 箇条書き入力エリア ─── */
-.bullet-card { border: 2px solid var(--bullet) !important; }
-.bullet-card .card-header { color: var(--bullet); }
-.bullet-hint {
-  margin-top: 8px; padding: 10px 12px;
-  background: var(--bullet-light); border-radius: var(--radius-sm);
-  font-size: 11px; color: var(--bullet); line-height: 1.8;
-}
-.bullet-hint strong { font-weight: 700; }
-.bullet-convert-btn {
-  width: 100%; margin-top: 10px; padding: 11px;
-  background: var(--bullet); color: white; border: none; border-radius: var(--radius-sm);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.bullet-convert-btn:hover { background: #0e7490; }
-.bullet-convert-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-/* ─── 生成ボタン ─── */
-.generate-btn {
-  width: 100%; padding: 16px;
-  background: linear-gradient(135deg, var(--primary) 0%, #5B21B6 100%);
-  color: #fff; border: none; border-radius: var(--radius);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 16px; font-weight: 700;
-  cursor: pointer; box-shadow: 0 4px 18px rgba(30,111,217,.35);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: all .2s; letter-spacing: .03em; margin-bottom: 14px;
-}
-.generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(30,111,217,.4); }
-.generate-btn:active { transform: translateY(0); }
-
-/* ─── 結果 ─── */
-.result-card {
-  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-md);
-  border: 2px solid var(--success); overflow: hidden; display: none; margin-bottom: 14px;
-}
-.result-card.show { display: block; animation: slideUp .35s ease; }
-@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-.result-header {
-  padding: 12px 18px; background: var(--success-light); border-bottom: 1px solid #BBF7D0;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.result-header-left { font-size: 13px; font-weight: 700; color: var(--success); }
-.result-header-right { font-size: 11px; color: var(--text-muted); }
-.result-text {
-  padding: 16px 18px; font-size: 14px; line-height: 1.9; color: var(--text);
-  white-space: pre-wrap; min-height: 80px; outline: none; cursor: text; background: #fff;
-}
-.result-text:focus { background: #FAFEFF; }
-.result-actions { padding: 12px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
-.action-btn {
-  flex: 1; min-width: 90px; padding: 11px 12px; border: none; border-radius: var(--radius-sm);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: all .15s; display: flex; align-items: center;
-  justify-content: center; gap: 5px; white-space: nowrap;
-}
-.action-btn:active { transform: scale(.97); }
-.btn-regen  { background: var(--primary-light); color: var(--primary); }
-.btn-copy   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
-.btn-notion { background: #111; color: #fff; }
-.btn-print  { background: #16A34A; color: #fff; }
-
-/* ─── 印刷レイアウト ─── */
-#printArea { display: none; }
-@media print {
-  @page { size: A4 portrait; margin: 6mm 8mm; }
-  body > * { display: none !important; }
-  #printArea {
-    display: block !important;
+  body {
     font-family: 'Noto Sans JP', sans-serif;
-    width: 100%;
+    background: #f0f4f8;
+    color: var(--gray-900);
+    min-height: 100vh;
+    padding-bottom: 40px;
   }
-  .print-sheet {
-    width: 100%;
-    height: 130mm;
-    box-sizing: border-box;
-    padding: 3mm 4mm;
-    border: 1.5pt solid #333;
-    page-break-inside: avoid;
+
+  /* ヘッダー */
+  .header {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    color: white;
+    padding: 16px 20px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  }
+  .header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.3px; }
+  .header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+  /* タブ切り替え */
+  .tabs {
     display: flex;
-    flex-direction: column;
-    gap: 1.5mm;
+    background: white;
+    border-bottom: 2px solid var(--gray-200);
+    position: sticky;
+    top: 68px;
+    z-index: 99;
   }
-  .print-cut {
-    height: 6mm;
+  .tab-btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    border: none;
+    background: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  /* コンテンツ */
+  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* カード */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+  }
+
+  /* ロック画面 */
+  #lockScreen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 7pt;
-    color: #999;
-    letter-spacing: .15em;
+    z-index: 9999;
+    flex-direction: column;
+    gap: 24px;
+    padding: 40px;
   }
-  .print-cut::before, .print-cut::after {
-    content: '';
-    flex: 1;
-    border-top: 1pt dashed #bbb;
-    margin: 0 3mm;
-  }
-  /* ヘッダー行 */
-  .ps-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1.5pt solid #333;
-    padding-bottom: 1.5mm;
-  }
-  .ps-facility { font-size: 8.5pt; font-weight: 700; color: #333; }
-  .ps-title    { font-size: 14pt; font-weight: 900; letter-spacing: .2em; color: #000; }
-  .ps-date     { font-size: 8.5pt; font-weight: 700; color: #333; text-align: right; }
-  /* 利用者行 */
-  .ps-user-row {
-    display: flex;
-    align-items: center;
-    gap: 4mm;
-    background: #f5f5f5;
-    padding: 1mm 2mm;
-    border-radius: 1mm;
-  }
-  .ps-user-label { font-size: 7.5pt; color: #555; white-space: nowrap; }
-  .ps-user-name  { font-size: 11pt; font-weight: 700; color: #000; flex: 1; }
-  .ps-residence  { font-size: 7.5pt; color: #444; background: #e8e8e8; padding: 0.5mm 2mm; border-radius: 1mm; }
-  /* バイタル */
-  .ps-vitals {
-    display: flex;
-    gap: 2mm;
-  }
-  .ps-vital-box {
-    flex: 1;
-    border: 1pt solid #ccc;
-    border-radius: 1mm;
-    padding: 1mm 2mm;
+  .lock-logo { font-size: 48px; }
+  .lock-title { color: white; font-size: 20px; font-weight: 700; text-align: center; }
+  .lock-sub { color: rgba(255,255,255,0.7); font-size: 13px; text-align: center; }
+  .pin-inputs { display: flex; gap: 12px; }
+  .pin-input {
+    width: 52px; height: 60px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
     text-align: center;
+    font-family: inherit;
+    outline: none;
+    -webkit-text-security: disc;
   }
-  .ps-vital-label { font-size: 6.5pt; color: #666; display: block; }
-  .ps-vital-val   { font-size: 9pt; font-weight: 700; color: #000; display: block; }
-  /* 体調・活動・食事・服薬 */
-  .ps-info-grid {
+  .pin-input:focus { border-color: white; background: rgba(255,255,255,0.25); }
+  .lock-error { color: #fca5a5; font-size: 13px; text-align: center; min-height: 18px; }
+
+  /* フォーム要素 */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  select, input[type="text"], input[type="date"], textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select:focus, input:focus, textarea:focus {
+    border-color: var(--primary);
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-row { margin-bottom: 14px; }
+
+  /* チップ選択 */
+  .chip-group {
     display: flex;
-    gap: 2mm;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .ps-info-cell {
-    flex: 1;
-    border: 1pt solid #ccc;
-    border-radius: 1mm;
-    padding: 1mm 2mm;
+  .chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--gray-200);
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
   }
-  .ps-info-label { font-size: 6.5pt; color: #666; font-weight: 700; display: block; margin-bottom: 0.5mm; }
-  .ps-info-val   { font-size: 8pt; color: #000; }
-  /* 連絡帳本文 */
-  .ps-message {
-    border: 1pt solid #333;
-    border-radius: 1mm;
-    padding: 1.5mm 2mm;
-    flex: 1;
-    min-height: 18mm;
+  .chip:hover { border-color: var(--primary); color: var(--primary); }
+  .chip.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
   }
-  .ps-message-label { font-size: 6.5pt; font-weight: 700; color: #555; margin-bottom: 1mm; display: block; border-bottom: 0.5pt solid #ddd; padding-bottom: 0.5mm; }
-  .ps-message-text  { font-size: 8.5pt; line-height: 1.75; white-space: pre-wrap; color: #000; }
-  /* 返信欄 */
-  .ps-reply {
-    border: 1pt solid #333;
-    border-radius: 1mm;
-    padding: 1.5mm 2mm;
-    height: 22mm;
+  .chip.selected.good { background: var(--success); border-color: var(--success); }
+  .chip.selected.warn { background: var(--warning); border-color: var(--warning); }
+  .chip.selected.bad { background: var(--danger); border-color: var(--danger); }
+
+  /* ボタン */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-  .ps-reply-label { font-size: 6.5pt; font-weight: 700; color: #555; margin-bottom: 0.5mm; display: block; border-bottom: 0.5pt solid #ddd; padding-bottom: 0.5mm; }
-  /* フッター */
-  .ps-footer { font-size: 6.5pt; color: #999; text-align: right; }
-}
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-success { background: var(--success); color: white; }
+  .btn-success:hover { background: #15803d; }
+  .btn-outline {
+    background: white;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-warning { background: var(--warning); color: white; }
+  .btn-sm {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ─── 過去記録 ─── */
-.history-toggle {
-  font-size: 12px; font-weight: 700; color: var(--text-muted); background: none;
-  border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0;
-}
-.history-toggle:hover { color: var(--primary); }
-.history-toggle .arr { transition: transform .2s; display: inline-block; }
-.history-toggle.open .arr { transform: rotate(90deg); }
-.history-body { display: none; margin-top: 10px; }
-.history-body.open { display: block; }
-.history-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 7px; background: #FAFAFA; }
-.history-date { font-weight: 700; color: var(--text-muted); font-size: 11px; margin-bottom: 5px; }
-.history-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
-.h-chip { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
-.h-chip-blue   { background: var(--primary-light); color: var(--primary); }
-.h-chip-green  { background: var(--success-light); color: var(--success); }
-.h-chip-orange { background: var(--accent-light); color: var(--accent); }
-.history-memo { color: var(--text-muted); font-size: 11px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  /* 検索 */
+  .search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .search-box select { flex: 1; }
+  .search-box button { white-space: nowrap; }
 
-/* ─── ローディングオーバーレイ ─── */
-.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 999; align-items: center; justify-content: center; }
-.loading-overlay.show { display: flex; }
-.loading-card { background: #fff; border-radius: var(--radius); padding: 32px 44px; text-align: center; box-shadow: var(--shadow-md); min-width: 220px; }
-.loading-ring { width: 46px; height: 46px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 16px; }
-.loading-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.loading-sub { font-size: 12px; color: var(--text-muted); }
+  /* 検索結果リスト */
+  .result-list { display: flex; flex-direction: column; gap: 8px; }
+  .result-item {
+    background: white;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .result-item:hover { border-color: var(--primary); background: var(--primary-light); }
+  .result-item:active { transform: scale(0.99); }
+  .result-name { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .result-date { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .result-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .result-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 10px;
+    font-weight: 500;
+  }
 
-/* ─── トースト ─── */
-.toast {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
-  background: #1E293B; color: #fff; padding: 11px 22px; border-radius: 999px;
-  font-size: 13px; font-weight: 600; opacity: 0; transition: all .3s;
-  z-index: 1000; white-space: nowrap; pointer-events: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,.3);
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  /* トースト */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--gray-900);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9998;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { background: var(--success); }
+  #toast.error { background: var(--danger); }
 
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
-.badge-purple { background: var(--reccheck-light); color: var(--reccheck); }
-.badge-cyan   { background: var(--bullet-light);   color: var(--bullet); }
+  /* ステータスバッジ */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-edit { background: var(--warning-light); color: var(--warning); }
+
+  /* セパレータ */
+  hr { border: none; border-top: 1px solid var(--gray-100); margin: 16px 0; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-500);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .loading { text-align: center; padding: 24px; color: var(--gray-500); font-size: 14px; }
 </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════
-     ログイン画面
-════════════════════════════════════════ -->
-<div id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo">📓</div>
-    <div class="login-title">ぱわふる安中</div>
-    <div class="login-sub">連絡帳入力システム</div>
-    <label class="login-label" for="pinInput">暗証番号を入力してください</label>
-    <input type="password" class="login-input" id="pinInput" maxlength="8"
-      placeholder="● ● ● ●" inputmode="numeric"
-      onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <div class="login-error" id="loginError">❌ 暗証番号が違います</div>
-    <div class="login-hint">※ 暗証番号は事務所スタッフにお問い合わせください</div>
-    <div class="login-hint" style="margin-top:8px;">✨ AI文章生成：Google Gemini（無料）使用</div>
+<!-- ロック画面 -->
+<div id="lockScreen">
+  <div class="lock-logo">🗒️</div>
+  <div class="lock-title">ぱわふる安中<br>連絡帳システム</div>
+  <div class="lock-sub">暗証番号を入力してください</div>
+  <div class="pin-inputs">
+    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p1">
+    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p2">
+    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p3">
+    <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p4">
   </div>
+  <div class="lock-error" id="lockError"></div>
 </div>
 
-<!-- ════════════════════════════════════════
-     APIキー設定画面（初回のみ）
-════════════════════════════════════════ -->
-<div id="setupScreen">
-  <div class="login-card">
-    <div class="login-logo">🔑</div>
-    <div class="login-title">初回設定</div>
-    <div class="login-sub">Gemini APIキーを入力してください</div>
-    <p style="font-size:12px;color:var(--text-muted);margin:-16px 0 20px;text-align:center;line-height:1.6;">
-      このデバイスに<strong>1回だけ</strong>入力すれば<br>次回からはPINのみでOKです
-    </p>
-    <label class="login-label" for="apiKeySetup">Gemini APIキー（無料）</label>
-    <input type="text" class="login-input" id="apiKeySetup" placeholder="AIzaSy..."
-      style="font-size:13px;letter-spacing:0.03em;text-align:left;"
-      onkeydown="if(event.key==='Enter') doSaveApiKey()">
-    <button class="login-btn" onclick="doSaveApiKey()">保存してアプリを開く</button>
-    <div class="login-error" id="setupError">❌ AIzaSy...で始まるキーを入力してください</div>
-    <div style="margin-top:20px;padding:14px;background:#F0FDF4;border-radius:10px;text-align:left;">
-      <p style="font-size:11px;color:#16A34A;font-weight:700;margin-bottom:6px;">📋 キーの取得方法</p>
-      <ol style="font-size:11px;color:#166534;padding-left:16px;line-height:1.8;">
-        <li><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#1E6FD9;font-weight:700;">aistudio.google.com/apikey</a> を開く</li>
-        <li>Googleアカウントでログイン</li>
-        <li>「Create API key」をクリック</li>
-        <li>表示されたキーをコピーして上に貼り付け</li>
-      </ol>
-    </div>
-  </div>
-</div>
-
-<!-- CSVダウンロードモーダル -->
-<div id="csvModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:12px;">
-  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">📊 保存データ管理</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;">保存した連絡帳データをCSVでダウンロードできます</div>
-
-    <div id="csvSummary" style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#1E40AF;font-weight:600;"></div>
-
-    <button onclick="downloadCsv()"
-      style="width:100%;padding:13px;background:#1E6FD9;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;">
-      📥 CSVをダウンロード（Excel対応）
-    </button>
-
-    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#92400E;">
-      ⚠️ ダウンロード後に「データを消去」してください。消去しないとデータが蓄積されます。
-    </div>
-
-    <button onclick="confirmClearData()"
-      style="width:100%;padding:11px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">
-      🗑️ ダウンロード済みデータを消去
-    </button>
-
-    <button onclick="document.getElementById('csvModal').style.display='none'"
-      style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">閉じる</button>
-  </div>
-</div>
-
-<!-- 保存設定モーダル -->
-<div id="notionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:12px;">
-  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">💾 保存先設定</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;">Googleスプレッドシートへの保存を推奨します（Notionより確実）</div>
-
-    <!-- ① Googleスプレッドシート（推奨） -->
-    <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:10px;">✅ ① Googleスプレッドシート（推奨・確実）</div>
-
-      <div style="font-size:11px;color:#166534;margin-bottom:8px;line-height:1.7;">
-        <strong>セットアップ手順（1回だけ）</strong><br>
-        1. <a href="https://docs.google.com/spreadsheets/d/1n9w48mkf1UCpc_yfI0l9RpOgPfwclGbIrkX0yGOXEFw/edit" target="_blank" style="color:#1E6FD9;font-weight:700;">保存先スプレッドシートを開く</a><br>
-        2. メニュー「拡張機能」→「Apps Script」を開く<br>
-        3. 表示されたコードをすべて削除し、下のスクリプトを貼り付け<br>
-        4. 💾 保存 → 「デプロイ」→「新しいデプロイ」<br>
-        5. 種類：<strong>ウェブアプリ</strong> ／ アクセス：<strong>全員</strong> → デプロイ<br>
-        6. 表示された <strong>ウェブアプリのURL</strong> をコピーして下に貼り付け
-      </div>
-
-      <div style="position:relative;margin-bottom:10px;">
-        <textarea id="gasScriptArea" readonly rows="8"
-          style="width:100%;font-size:10px;font-family:monospace;background:#1E293B;color:#7DD3FC;border:none;border-radius:6px;padding:10px;resize:none;box-sizing:border-box;line-height:1.5;">function doPost(e){
-  try{
-    if(!e||!e.postData||!e.postData.contents)throw new Error('no data');
-    var d=JSON.parse(e.postData.contents);
-    var ss=SpreadsheetApp.openById('1n9w48mkf1UCpc_yfI0l9RpOgPfwclGbIrkX0yGOXEFw');
-    var sh=ss.getSheetByName('連絡帳')||ss.insertSheet('連絡帳');
-    writeFormatted(sh,d);
-    return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
-  }catch(err){
-    return ContentService.createTextOutput('{"ok":false,"error":"'+err.message+'"}').setMimeType(ContentService.MimeType.JSON);
-  }
-}
-function doGet(){return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);}
-function writeFormatted(sh,d){
-  var C=8,M=SpreadsheetApp.BorderStyle.SOLID,MB=SpreadsheetApp.BorderStyle.SOLID_MEDIUM;
-  var nr=sh.getLastRow();
-  var R=nr>0?nr+2:1;
-  // 列幅初期設定
-  if(nr===0){[1,2,3,4,5,6,7,8].forEach(function(i){sh.setColumnWidth(i,90);});}
-  // ① ヘッダー行
-  var h=sh.getRange(R,1,1,C);
-  h.merge().setBackground('#D0E4F7').setBorder(true,true,true,true,false,false,'#1565C0',MB);
-  sh.getRange(R,1).setValue('ぱわふる安中　生活介護事業所　　　連　絡　帳　　　'+fmtD(d.date)).setFontSize(11).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
-  sh.setRowHeight(R,26);R++;
-  // ② 利用者行
-  sh.getRange(R,1,1,C).setBackground('#EEF6FF').setBorder(true,true,true,true,false,false,'#AAAAAA',M);
-  sh.getRange(R,1,1,1).setValue('利用者').setFontSize(8).setFontColor('#777').setHorizontalAlignment('center').setVerticalAlignment('middle');
-  sh.getRange(R,2,1,5).merge().setValue((d.user||'')+'　様').setFontSize(12).setFontWeight('bold').setVerticalAlignment('middle');
-  sh.getRange(R,7,1,2).merge().setValue(d.residence||'').setFontSize(9).setHorizontalAlignment('right').setVerticalAlignment('middle').setFontColor('#444');
-  sh.setRowHeight(R,24);R++;
-  // ③ バイタル行
-  var bdr='#BBBBBB';
-  sh.getRange(R,1,1,C).setBorder(true,true,true,true,true,false,bdr,M);
-  var vl=[['体　温',d.temp||'—'],['血　圧',d.bp||'—'],['脈　拍',d.pulse||'—'],['再検測定',d.recheck||'—']];
-  for(var i=0;i<4;i++){
-    var c=sh.getRange(R,i*2+1,1,2).merge();
-    c.setValue(vl[i][0]+'\n'+vl[i][1]).setFontSize(9).setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
-    if(i===3&&!d.recheck)c.setFontColor('#BBBBBB');
-  }
-  sh.setRowHeight(R,38);R++;
-  // ④ 体調・活動・食事・服薬（ラベル）
-  sh.getRange(R,1,1,C).setBackground('#F0F8FF').setBorder(true,true,false,true,true,false,bdr,M);
-  var labs=['体調・気分','本日の活動','食事摂取量','服　　　薬'];
-  for(var j=0;j<4;j++)sh.getRange(R,j*2+1,1,2).merge().setValue(labs[j]).setFontSize(8).setFontWeight('bold').setFontColor('#555').setHorizontalAlignment('center').setVerticalAlignment('middle');
-  sh.setRowHeight(R,18);R++;
-  // ⑤ 値行
-  sh.getRange(R,1,1,C).setBorder(false,true,true,true,true,false,bdr,M);
-  var vals=[d.conditions||'',d.activities||'',d.meal||'',d.medication||''];
-  for(var k=0;k<4;k++)sh.getRange(R,k*2+1,1,2).merge().setValue(vals[k]).setFontSize(9).setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
-  sh.setRowHeight(R,40);R++;
-  // ⑥ 本日のご様子ラベル
-  sh.getRange(R,1,1,C).merge().setValue('本日のご様子').setFontSize(8).setFontWeight('bold').setFontColor('#555').setBackground('#FFFDE7').setBorder(true,true,false,true,false,false,bdr,M);
-  sh.setRowHeight(R,18);R++;
-  // ⑦ 本日のご様子テキスト（4行）
-  sh.getRange(R,1,4,C).merge().setValue(d.message||'').setFontSize(9.5).setVerticalAlignment('top').setWrap(true).setBorder(false,true,true,true,false,false,bdr,M);
-  for(var r=0;r<4;r++)sh.setRowHeight(R+r,20);R+=4;
-  // ⑧ ご家族欄ラベル
-  sh.getRange(R,1,1,C).merge().setValue('ご家族からのご連絡').setFontSize(8).setFontWeight('bold').setFontColor('#555').setBackground('#F1F8E9').setBorder(true,true,false,true,false,false,bdr,M);
-  sh.setRowHeight(R,18);R++;
-  // ⑨ ご家族欄スペース（2行）
-  sh.getRange(R,1,2,C).merge().setValue('').setBorder(false,true,true,true,false,false,bdr,M);
-  sh.setRowHeight(R,22);sh.setRowHeight(R+1,22);R+=2;
-  // ⑩ フッター
-  sh.getRange(R,1,1,C).merge().setValue('保存日時：'+new Date().toLocaleString('ja-JP')).setFontSize(7).setFontColor('#AAAAAA').setHorizontalAlignment('right');
-  sh.setRowHeight(R,14);
-}
-function fmtD(s){
-  if(!s)return '';
-  var d=new Date(s+'T00:00:00');
-  return d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-}</textarea>
-        <button onclick="copyGasScript()" style="position:absolute;top:6px;right:6px;padding:4px 10px;background:#1E6FD9;color:#fff;border:none;border-radius:4px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;">コピー</button>
-      </div>
-
-      <label class="login-label" for="gasUrlInput" style="color:#166534;">ウェブアプリのURL</label>
-      <input type="text" class="login-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..."
-        style="font-size:12px;letter-spacing:0;text-align:left;margin-bottom:8px;"
-        onkeydown="if(event.key==='Enter') saveGasUrl()">
-      <div style="display:flex;gap:8px;margin-bottom:4px;">
-        <button onclick="saveGasUrl()"
-          style="flex:1;padding:11px;background:#16A34A;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">URLを保存</button>
-        <button onclick="testGasConnection()"
-          style="flex:1;padding:11px;background:#1E6FD9;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">🔍 接続テスト</button>
-      </div>
-      <div id="gasTestResult" style="display:none;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-top:4px;"></div>
-    </div>
-
-    <!-- ② Notion（オプション） -->
-    <div style="background:#F8F9FA;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">⬛ ② Notion（オプション）</div>
-      <label class="login-label" for="notionTokenInput">統合トークン（ntn_…）</label>
-      <input type="text" class="login-input" id="notionTokenInput" placeholder="ntn_..."
-        style="font-size:12px;letter-spacing:0;text-align:left;margin-bottom:8px;"
-        onkeydown="if(event.key==='Enter') saveNotionToken()">
-      <button onclick="saveNotionToken()"
-        style="width:100%;padding:11px;background:#333;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Notionトークンを保存</button>
-    </div>
-
-    <div id="notionModalError" style="display:none;margin-bottom:10px;color:var(--danger);font-size:12px;font-weight:600;"></div>
-    <button onclick="document.getElementById('notionModal').style.display='none'"
-      style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;">閉じる</button>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════
-     メインアプリ
-════════════════════════════════════════ -->
-<div id="appScreen">
-
+<!-- メイン -->
+<div id="mainApp" style="display:none;">
   <div class="header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">📓 連絡帳入力</div>
-        <div class="header-sub">ぱわふる安中</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="header-date" id="headerDate"></div>
-      <button class="logout-btn" id="csvBtn" onclick="openCsvModal()" style="margin-right:4px;background:#1E6FD9;">📊 <span id="csvCount">0</span>件</button>
-      <button class="logout-btn" onclick="openNotionModal()" style="margin-right:4px;background:#555;">保存設定</button>
-      <button class="logout-btn" onclick="resetApiKey()" style="margin-right:6px;background:#888;">APIキー変更</button>
-      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
-    </div>
+    <h1>🗒️ ぱわふる安中 連絡帳</h1>
+    <p>連絡帳の入力・呼び出し・編集</p>
   </div>
 
-  <div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('new')">📝 新規入力</button>
+    <button class="tab-btn" onclick="switchTab('edit')">🔍 呼び出し・編集</button>
+  </div>
 
-    <!-- ── 入力モード切り替え ── -->
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="modeNormal" onclick="setMode('normal')">
-        ✅ 通常入力モード<br><span style="font-size:10px;font-weight:400;">チェック＋メモ</span>
+  <!-- 新規入力パネル -->
+  <div class="content">
+    <div id="panelNew" class="panel active">
+
+      <div class="card">
+        <div class="card-title">基本情報</div>
+        <div class="form-row">
+          <label>利用者名 *</label>
+          <select id="userName">
+            <option value="">-- 選択してください --</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>実施日 *</label>
+          <input type="date" id="date">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">バイタル</div>
+        <div class="form-row">
+          <label>バイタル（体温・血圧・脈拍など）</label>
+          <input type="text" id="vital" placeholder="例：体温36.5℃ 血圧120/80 脈拍72">
+        </div>
+        <div class="form-row">
+          <label>バイタル（再検）</label>
+          <input type="text" id="vital2" placeholder="再検した場合のみ入力">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">体調</div>
+        <div class="chip-group" id="conditionChips">
+          <div class="chip good" data-val="良好">😊 良好</div>
+          <div class="chip warn" data-val="要観察">👀 要観察</div>
+          <div class="chip bad" data-val="体調不良">🤒 体調不良</div>
+          <div class="chip bad" data-val="気分不快">😣 気分不快</div>
+          <div class="chip warn" data-val="気分落ち気味">😔 気分落ち気味</div>
+          <div class="chip warn" data-val="気分高揚">😄 気分高揚</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">活動内容</div>
+        <div class="chip-group" id="activityChips">
+          <div class="chip" data-val="体操">🤸 体操</div>
+          <div class="chip" data-val="散歩">🚶 散歩</div>
+          <div class="chip" data-val="プリント(算数)">🔢 算数</div>
+          <div class="chip" data-val="プリント(国語)">📖 国語</div>
+          <div class="chip" data-val="プリント(漢字)">✏️ 漢字</div>
+          <div class="chip" data-val="プリント(社会)">🌏 社会</div>
+          <div class="chip" data-val="プリント(脳トレ)">🧠 脳トレ</div>
+          <div class="chip" data-val="プリント(美術)">🎨 美術</div>
+          <div class="chip" data-val="塗り絵">🖌️ 塗り絵</div>
+          <div class="chip" data-val="制作">✂️ 制作</div>
+          <div class="chip" data-val="運動レク">⚽ 運動レク</div>
+          <div class="chip" data-val="パズル">🧩 パズル</div>
+          <div class="chip" data-val="カラオケ">🎤 カラオケ</div>
+          <div class="chip" data-val="入浴">🛁 入浴</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">食事量</div>
+        <div class="chip-group" id="mealChips">
+          <div class="chip" data-val="完食">✅ 完食</div>
+          <div class="chip" data-val="8割">8割</div>
+          <div class="chip" data-val="6割">6割</div>
+          <div class="chip" data-val="半分量">半分</div>
+          <div class="chip" data-val="4割">4割</div>
+          <div class="chip" data-val="2割">2割</div>
+          <div class="chip" data-val="少量">少量</div>
+          <div class="chip" data-val="摂取なし">❌ なし</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">メモ・備考</div>
+        <textarea id="memo" placeholder="特記事項・申し送り事項など"></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveNew()" id="btnSaveNew">
+        💾 Notionに保存する
       </button>
-      <button class="mode-btn" id="modeBullet" onclick="setMode('bullet')">
-        📝 箇条書きモード<br><span style="font-size:10px;font-weight:400;">素早く箇条書きで入力</span>
-      </button>
     </div>
 
-    <div class="two-col">
+    <!-- 呼び出し・編集パネル -->
+    <div id="panelEdit" class="panel">
 
-      <!-- 左カラム（常に表示） -->
-      <div>
-
-        <!-- 利用者選択 -->
+      <!-- 検索エリア -->
+      <div id="searchArea">
         <div class="card">
-          <div class="card-header">👤 利用者</div>
-          <div class="card-body">
-            <div id="userLoadingMsg" class="user-loading">
-              <span class="mini-spinner"></span> Notionから利用者情報を取得中...
-            </div>
-            <div class="user-grid" id="userGrid" style="display:none;"></div>
+          <div class="card-title">利用者名で検索</div>
+          <div class="search-box">
+            <select id="searchUser">
+              <option value="">-- 利用者を選択 --</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="searchRecords()">🔍 検索</button>
           </div>
         </div>
 
-        <!-- 実施日 -->
+        <div id="searchResults">
+          <div class="empty-state">
+            <div class="icon">🔍</div>
+            <p>利用者名を選んで「検索」を押してください</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 編集フォーム（検索結果を選んだ後に表示） -->
+      <div id="editArea" style="display:none;">
         <div class="card">
-          <div class="card-header">📅 実施日</div>
-          <div class="card-body">
-            <input type="date" class="input" id="dateInput">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span class="badge badge-edit">✏️ 編集中</span>
+            <button class="btn btn-outline btn-sm" onclick="backToSearch()">← 検索に戻る</button>
+          </div>
+          <div class="card-title">基本情報</div>
+          <div class="form-row">
+            <label>利用者名</label>
+            <input type="text" id="editUserName" readonly style="background:#f3f4f6;">
+          </div>
+          <div class="form-row">
+            <label>実施日</label>
+            <input type="date" id="editDate">
           </div>
         </div>
 
-        <!-- バイタル -->
         <div class="card">
-          <div class="card-header">🩺 バイタル</div>
-          <div class="card-body">
-            <div class="section-title">📊 初回測定</div>
-            <div class="vital-grid">
-              <div class="vital-item">
-                <label class="field-label">体温</label>
-                <input type="number" class="input" id="temp" placeholder="36.5" step="0.1" min="34" max="42">
-                <div class="vital-unit">℃</div>
-              </div>
-              <div class="vital-item">
-                <label class="field-label">血圧</label>
-                <input type="text" class="input" id="bp" placeholder="120/80">
-                <div class="vital-unit">mmHg</div>
-              </div>
-              <div class="vital-item">
-                <label class="field-label">脈拍</label>
-                <input type="number" class="input" id="pulse" placeholder="70" min="30" max="200">
-                <div class="vital-unit">回/分</div>
-              </div>
-            </div>
-
-            <div class="recheck-toggle" id="recheckToggle" onclick="toggleRecheck()">
-              <span class="t-icon">＋</span>
-              <span>再検あり</span>
-              <span class="badge badge-purple">任意</span>
-            </div>
-            <div class="recheck-area" id="recheckArea">
-              <div class="recheck-label">🔄 再検測定値</div>
-              <div class="vital-grid">
-                <div class="vital-item">
-                  <label class="field-label">体温（再）</label>
-                  <input type="number" class="input" id="temp2" placeholder="36.5" step="0.1" min="34" max="42">
-                  <div class="vital-unit">℃</div>
-                </div>
-                <div class="vital-item">
-                  <label class="field-label">血圧（再）</label>
-                  <input type="text" class="input" id="bp2" placeholder="120/80">
-                  <div class="vital-unit">mmHg</div>
-                </div>
-                <div class="vital-item">
-                  <label class="field-label">脈拍（再）</label>
-                  <input type="number" class="input" id="pulse2" placeholder="70" min="30" max="200">
-                  <div class="vital-unit">回/分</div>
-                </div>
-              </div>
-            </div>
+          <div class="card-title">バイタル</div>
+          <div class="form-row">
+            <label>バイタル</label>
+            <input type="text" id="editVital" placeholder="例：体温36.5℃ 血圧120/80 脈拍72">
+          </div>
+          <div class="form-row">
+            <label>バイタル（再検）</label>
+            <input type="text" id="editVital2">
           </div>
         </div>
 
-      </div><!-- /左カラム -->
-
-      <!-- 右カラム -->
-      <div>
-
-        <!-- ══ 通常入力モード ══ -->
-        <div id="normalModeArea">
-
-          <!-- 体調 -->
-          <div class="card">
-            <div class="card-header">😊 体調・気分</div>
-            <div class="card-body">
-              <div class="chips">
-                <div class="chip" onclick="toggleChip(this,'condition','良好','sel-green')">😊 良好</div>
-                <div class="chip" onclick="toggleChip(this,'condition','要観察','sel-warn')">👀 要観察</div>
-                <div class="chip" onclick="toggleChip(this,'condition','体調不良','sel-red')">🤒 体調不良</div>
-                <div class="chip" onclick="toggleChip(this,'condition','気分不快','sel-warn')">😞 気分不快</div>
-                <div class="chip" onclick="toggleChip(this,'condition','気分落ち気味','sel-warn')">😔 落ち気味</div>
-                <div class="chip" onclick="toggleChip(this,'condition','気分高揚','sel-blue')">😄 気分高揚</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 活動 -->
-          <div class="card">
-            <div class="card-header">🏃 本日の活動</div>
-            <div class="card-body">
-              <div class="chips">
-                <div class="chip" onclick="toggleChip(this,'activity','体操','sel-blue')">🤸 体操</div>
-                <div class="chip" onclick="toggleChip(this,'activity','散歩','sel-blue')">🚶 散歩</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(算数)','sel-blue')">🔢 算数</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(国語)','sel-blue')">📖 国語</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(漢字)','sel-blue')">✏️ 漢字</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(社会)','sel-blue')">🌏 社会</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(脳トレ)','sel-blue')">🧠 脳トレ</div>
-                <div class="chip" onclick="toggleChip(this,'activity','プリント(美術)','sel-blue')">🎨 美術</div>
-                <div class="chip" onclick="toggleChip(this,'activity','塗り絵','sel-blue')">🖌️ 塗り絵</div>
-                <div class="chip" onclick="toggleChip(this,'activity','制作','sel-blue')">🛠️ 制作</div>
-                <div class="chip" onclick="toggleChip(this,'activity','運動レク','sel-blue')">⚽ 運動レク</div>
-                <div class="chip" onclick="toggleChip(this,'activity','パズル','sel-blue')">🧩 パズル</div>
-                <div class="chip" onclick="toggleChip(this,'activity','カラオケ','sel-blue')">🎤 カラオケ</div>
-                <div class="chip" onclick="toggleChip(this,'activity','入浴','sel-blue')">🛁 入浴</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 食事 -->
-          <div class="card">
-            <div class="card-header">🍱 食事摂取量</div>
-            <div class="card-body">
-              <div class="meal-grid">
-                <button class="meal-btn" onclick="selectMeal(this,'完食')">完食</button>
-                <button class="meal-btn" onclick="selectMeal(this,'8割')">8割</button>
-                <button class="meal-btn" onclick="selectMeal(this,'6割')">6割</button>
-                <button class="meal-btn" onclick="selectMeal(this,'半分量')">半分量</button>
-                <button class="meal-btn" onclick="selectMeal(this,'4割')">4割</button>
-                <button class="meal-btn" onclick="selectMeal(this,'2割')">2割</button>
-                <button class="meal-btn" onclick="selectMeal(this,'少量')">少量</button>
-                <button class="meal-btn" onclick="selectMeal(this,'摂取なし')">摂取なし</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 服薬チェック -->
-          <div class="card">
-            <div class="card-header">💊 服薬</div>
-            <div class="card-body">
-              <div class="med-row">
-                <span class="med-label">昼食前</span>
-                <button class="med-btn" id="medBeforeBtn" onclick="toggleMed('before')">服薬済み</button>
-              </div>
-              <div class="med-row">
-                <span class="med-label">昼食後</span>
-                <button class="med-btn" id="medAfterBtn" onclick="toggleMed('after')">服薬済み</button>
-              </div>
-              <div class="med-row">
-                <span class="med-label">頓服</span>
-                <input type="text" class="med-input" id="medPrnInput" placeholder="薬品名・内容を記入">
-              </div>
-            </div>
-          </div>
-
-          <!-- メモ（箇条書き対応） -->
-          <div class="card">
-            <div class="card-header">💬 メモ・特記事項 <span class="badge badge-cyan">箇条書き可</span></div>
-            <div class="card-body">
-              <textarea class="input" id="memoInput" rows="4"
-                placeholder="箇条書きでも文章でもOKです&#10;例：&#10;・声が大きくなる場面あり&#10;・他利用者と笑顔で交流できた&#10;・午後少し眠そうにしていた"></textarea>
-              <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">
-                ※ 箇条書き（・〜）で書くとAIが自動的に保護者向け文章に組み込みます
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /normalModeArea -->
-
-        <!-- ══ 箇条書きモード ══ -->
-        <div id="bulletModeArea" style="display:none;">
-          <div class="card bullet-card">
-            <div class="card-header">📝 箇条書きで今日の様子を入力 <span class="badge badge-cyan">AIが変換</span></div>
-            <div class="card-body">
-              <textarea class="input" id="bulletInput" rows="8"
-                placeholder="今日の様子を箇条書きで入力してください&#10;&#10;・体操で元気よく体を動かした&#10;・昼食は完食。水分もよく摂れた&#10;・午後は少し眠そうだったが休憩後に回復&#10;・他の利用者と笑顔で会話していた&#10;・バイタルは問題なし"></textarea>
-              <div class="bullet-hint">
-                <strong>📌 ヒント</strong><br>
-                ・で始まる行を箇条書きとして認識します<br>
-                バイタル・食事・活動もここに書くか、左の欄でも入力できます<br>
-                書いた内容はそのままAIが保護者向け文章に変換します
-              </div>
-            </div>
-          </div>
-        </div><!-- /bulletModeArea -->
-
-      </div><!-- /右カラム -->
-
-      <!-- 過去記録（フルカラム） -->
-      <div class="card full-col" id="historyCard" style="display:none;">
-        <div class="card-header">
-          <button class="history-toggle" id="historyToggle" onclick="toggleHistory()">
-            📋 過去の記録を参照 <span class="arr">▶</span>
-          </button>
-        </div>
-        <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
-          <div class="history-body" id="historyBody">
-            <div id="historyList" style="color:var(--text-muted);font-size:13px;padding:8px 0;">読み込み中...</div>
+        <div class="card">
+          <div class="card-title">体調</div>
+          <div class="chip-group" id="editConditionChips">
+            <div class="chip good" data-val="良好">😊 良好</div>
+            <div class="chip warn" data-val="要観察">👀 要観察</div>
+            <div class="chip bad" data-val="体調不良">🤒 体調不良</div>
+            <div class="chip bad" data-val="気分不快">😣 気分不快</div>
+            <div class="chip warn" data-val="気分落ち気味">😔 気分落ち気味</div>
+            <div class="chip warn" data-val="気分高揚">😄 気分高揚</div>
           </div>
         </div>
-      </div>
 
-      <!-- 生成ボタン -->
-      <div class="full-col">
-        <button class="generate-btn" onclick="generateText()">✨ AIで連絡帳を生成する</button>
-      </div>
-
-      <!-- 結果 -->
-      <div class="result-card full-col" id="resultCard">
-        <div class="result-header">
-          <div class="result-header-left">✅ 生成完了 — クリックして編集できます</div>
-          <div class="result-header-right">Ctrl+A で全選択</div>
-        </div>
-        <div class="result-text" id="resultText" contenteditable="true"></div>
-        <div class="result-actions">
-          <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
-          <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
-          <button class="action-btn btn-print" onclick="printResult()">🖨️ 印刷</button>
-          <button class="action-btn btn-notion" onclick="doSave()">💾 編集して再保存</button>
-          <button class="action-btn" style="background:#7C3AED;color:#fff;" onclick="resetForm()">👤 次の利用者へ</button>
-        </div>
-        <div id="notionErrorArea" style="display:none;margin:8px 16px 12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;color:#DC2626;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <strong>⚠️ Notion保存エラー</strong>
-            <button onclick="openNotionModal()" style="padding:4px 10px;background:#DC2626;color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Notion設定を開く</button>
+        <div class="card">
+          <div class="card-title">活動内容</div>
+          <div class="chip-group" id="editActivityChips">
+            <div class="chip" data-val="体操">🤸 体操</div>
+            <div class="chip" data-val="散歩">🚶 散歩</div>
+            <div class="chip" data-val="プリント(算数)">🔢 算数</div>
+            <div class="chip" data-val="プリント(国語)">📖 国語</div>
+            <div class="chip" data-val="プリント(漢字)">✏️ 漢字</div>
+            <div class="chip" data-val="プリント(社会)">🌏 社会</div>
+            <div class="chip" data-val="プリント(脳トレ)">🧠 脳トレ</div>
+            <div class="chip" data-val="プリント(美術)">🎨 美術</div>
+            <div class="chip" data-val="塗り絵">🖌️ 塗り絵</div>
+            <div class="chip" data-val="制作">✂️ 制作</div>
+            <div class="chip" data-val="運動レク">⚽ 運動レク</div>
+            <div class="chip" data-val="パズル">🧩 パズル</div>
+            <div class="chip" data-val="カラオケ">🎤 カラオケ</div>
+            <div class="chip" data-val="入浴">🛁 入浴</div>
           </div>
-          <div id="notionErrorMsg" style="margin-top:4px;white-space:pre-wrap;word-break:break-all;"></div>
         </div>
-      </div>
 
-    </div>
-  </div>
-</div><!-- /appScreen -->
+        <div class="card">
+          <div class="card-title">食事量</div>
+          <div class="chip-group" id="editMealChips">
+            <div class="chip" data-val="完食">✅ 完食</div>
+            <div class="chip" data-val="8割">8割</div>
+            <div class="chip" data-val="6割">6割</div>
+            <div class="chip" data-val="半分量">半分</div>
+            <div class="chip" data-val="4割">4割</div>
+            <div class="chip" data-val="2割">2割</div>
+            <div class="chip" data-val="少量">少量</div>
+            <div class="chip" data-val="摂取なし">❌ なし</div>
+          </div>
+        </div>
 
-<!-- 印刷専用エリア（画面非表示・印刷時のみ表示） A4縦二枚取り -->
-<div id="printArea">
+        <div class="card">
+          <div class="card-title">メモ・備考</div>
+          <textarea id="editMemo"></textarea>
+        </div>
 
-  <!-- ── 1枚目 ── -->
-  <div class="print-sheet" id="printSheet1">
-    <div class="ps-header">
-      <div class="ps-facility">ぱわふる安中　生活介護事業所</div>
-      <div class="ps-title">連　絡　帳</div>
-      <div class="ps-date" id="printDate1"></div>
-    </div>
-    <div class="ps-user-row">
-      <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser1"></span><span class="ps-user-name">様</span>
-      <span class="ps-residence" id="printResidence1"></span>
-    </div>
-    <div class="ps-vitals">
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">体　温</span>
-        <span class="ps-vital-val" id="printTemp1"></span>
-      </div>
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">血　圧</span>
-        <span class="ps-vital-val" id="printBP1"></span>
-      </div>
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">脈　拍</span>
-        <span class="ps-vital-val" id="printPulse1"></span>
-      </div>
-      <div class="ps-vital-box" id="printRecheckBox1" style="display:none;">
-        <span class="ps-vital-label">再検バイタル</span>
-        <span class="ps-vital-val" id="printRecheck1"></span>
+        <button class="btn btn-warning" onclick="updateRecord()" id="btnUpdate">
+          🔄 この記録を更新して保存する
+        </button>
       </div>
     </div>
-    <div class="ps-info-grid">
-      <div class="ps-info-cell">
-        <span class="ps-info-label">体調・気分</span>
-        <span class="ps-info-val" id="printConditions1"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">本日の活動</span>
-        <span class="ps-info-val" id="printActivities1"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">食事摂取量</span>
-        <span class="ps-info-val" id="printMeal1"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">服　　　薬</span>
-        <span class="ps-info-val" id="printMed1"></span>
-      </div>
-    </div>
-    <div class="ps-message">
-      <span class="ps-message-label">本日のご様子</span>
-      <div class="ps-message-text" id="printText1"></div>
-    </div>
-    <div class="ps-reply">
-      <span class="ps-reply-label">ご家族からのご連絡</span>
-    </div>
-    <div class="ps-footer">生成：<span id="printTimestamp1"></span></div>
-  </div>
-
-  <!-- ── 切り取り線 ── -->
-  <div class="print-cut">✂　き　り　と　り　線　✂</div>
-
-  <!-- ── 2枚目（控え） ── -->
-  <div class="print-sheet" id="printSheet2">
-    <div class="ps-header">
-      <div class="ps-facility">ぱわふる安中　生活介護事業所　【施設控え】</div>
-      <div class="ps-title">連　絡　帳</div>
-      <div class="ps-date" id="printDate2"></div>
-    </div>
-    <div class="ps-user-row">
-      <span class="ps-user-label">利用者</span>
-      <span class="ps-user-name" id="printUser2"></span><span class="ps-user-name">様</span>
-      <span class="ps-residence" id="printResidence2"></span>
-    </div>
-    <div class="ps-vitals">
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">体　温</span>
-        <span class="ps-vital-val" id="printTemp2"></span>
-      </div>
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">血　圧</span>
-        <span class="ps-vital-val" id="printBP2"></span>
-      </div>
-      <div class="ps-vital-box">
-        <span class="ps-vital-label">脈　拍</span>
-        <span class="ps-vital-val" id="printPulse2"></span>
-      </div>
-      <div class="ps-vital-box" id="printRecheckBox2" style="display:none;">
-        <span class="ps-vital-label">再検バイタル</span>
-        <span class="ps-vital-val" id="printRecheck2"></span>
-      </div>
-    </div>
-    <div class="ps-info-grid">
-      <div class="ps-info-cell">
-        <span class="ps-info-label">体調・気分</span>
-        <span class="ps-info-val" id="printConditions2"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">本日の活動</span>
-        <span class="ps-info-val" id="printActivities2"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">食事摂取量</span>
-        <span class="ps-info-val" id="printMeal2"></span>
-      </div>
-      <div class="ps-info-cell">
-        <span class="ps-info-label">服　　　薬</span>
-        <span class="ps-info-val" id="printMed2"></span>
-      </div>
-    </div>
-    <div class="ps-message">
-      <span class="ps-message-label">本日のご様子</span>
-      <div class="ps-message-text" id="printText2"></div>
-    </div>
-    <div class="ps-reply">
-      <span class="ps-reply-label">備考・特記事項</span>
-    </div>
-    <div class="ps-footer">生成：<span id="printTimestamp2"></span></div>
-  </div>
-
-</div>
-
-<!-- ローディング -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-card">
-    <div class="loading-ring"></div>
-    <div class="loading-title" id="loadingTitle">処理中...</div>
-    <div class="loading-sub" id="loadingSub">少々お待ちください</div>
   </div>
 </div>
 
 <!-- トースト -->
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  ★★★ 設定（ここを変更してください）★★★
-// ══════════════════════════════════════════════
+// ============================================================
+// 設定（現在のアプリと同じAPIキー・DB IDを使用）
+// ============================================================
+const CONFIG = {
+  NOTION_TOKEN: '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',
+  DATABASE_ID: '325d6592-945a-801b-adc1-f66af0b5cfb0',
+  PIN: '0375',
+  PROXY: 'https://notion-proxy-seven.vercel.app/api/notion',
+  USERS: [
+    '石井 美弥子', '堀米 亜希子', '横塚 時也', '富田 蓮人',
+    '岡田 正末', '佐藤 嵩彦', '櫻井 憲二', '萩原 奈津樹',
+    '山田 美穂', '藤里 直美', '金井 直美', '柴山 美香',
+    '堀川 明美', '岡田 成弘', '杉山 幸美'
+  ]
+};
 
-// Gemini APIキー（localStorageに保存・コードには含まない）
-const getApiKey = () => localStorage.getItem('gemini_api_key') || '';
+// ============================================================
+// 状態管理
+// ============================================================
+let currentPageId = null;  // 編集中のページID
 
-// ── Gemini API 呼び出し ──────────────────────────────
-// APIキーで使えるモデル一覧を取得（優先順位付き）
-async function listGeminiModels() {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models?key=${getApiKey()}`
-  );
-  const data = await res.json();
-  if (data.error) throw new Error(`APIキーエラー: ${data.error.message}`);
+// ============================================================
+// ロック画面
+// ============================================================
+const pins = [1,2,3,4].map(i => document.getElementById('p'+i));
 
-  const all = (data.models || [])
-    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
-    .map(m => m.name.replace('models/', ''));
+pins.forEach((pin, i) => {
+  pin.addEventListener('input', () => {
+    pin.value = pin.value.replace(/[^0-9]/g, '');
+    if (pin.value.length === 1 && i < 3) pins[i+1].focus();
+    if (pins.every(p => p.value.length === 1)) checkPin();
+  });
+  pin.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !pin.value && i > 0) pins[i-1].focus();
+  });
+});
 
-  // flash → 1.5-pro → flash-lite → flash-8b の順（高負荷時の安定性を重視）
-  const order = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'flash-lite', 'flash-8b', 'flash', 'pro'];
-  const sorted = [];
-  for (const p of order) {
-    const found = all.filter(m => (m === p || m.includes(p)) && !sorted.includes(m));
-    sorted.push(...found);
+function checkPin() {
+  const entered = pins.map(p => p.value).join('');
+  if (entered === CONFIG.PIN) {
+    document.getElementById('lockScreen').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+    }, 300);
+  } else {
+    document.getElementById('lockError').textContent = '暗証番号が違います';
+    pins.forEach(p => p.value = '');
+    pins[0].focus();
+    setTimeout(() => document.getElementById('lockError').textContent = '', 2000);
   }
-  for (const m of all) { if (!sorted.includes(m)) sorted.push(m); }
-  return sorted;
 }
 
-async function geminiRequest(model, prompt) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 150, temperature: 0.7, topP: 0.9 }
-      })
+// ============================================================
+// 初期化
+// ============================================================
+window.addEventListener('load', () => {
+  // 今日の日付をセット
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('date').value = today;
+
+  // 利用者名をセレクトに追加
+  const selects = ['userName', 'searchUser'];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    CONFIG.USERS.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u;
+      opt.textContent = u;
+      sel.appendChild(opt);
+    });
+  });
+
+  // チップ初期化
+  initChips('conditionChips');
+  initChips('activityChips');
+  initChips('mealChips');
+  initChips('editConditionChips');
+  initChips('editActivityChips');
+  initChips('editMealChips');
+
+  pins[0].focus();
+});
+
+function initChips(groupId) {
+  document.querySelectorAll('#' + groupId + ' .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const isMulti = groupId.includes('activity') || groupId.includes('Activity')
+                   || groupId.includes('meal') || groupId.includes('Meal')
+                   || groupId.includes('condition') || groupId.includes('Condition');
+      if (!isMulti) {
+        document.querySelectorAll('#' + groupId + ' .chip').forEach(c => c.classList.remove('selected'));
+      }
+      chip.classList.toggle('selected');
+    });
+  });
+}
+
+// ============================================================
+// タブ切り替え
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+// ============================================================
+// 新規保存
+// ============================================================
+async function saveNew() {
+  const name = document.getElementById('userName').value;
+  const date = document.getElementById('date').value;
+  if (!name) { showToast('利用者名を選択してください', 'error'); return; }
+  if (!date) { showToast('実施日を入力してください', 'error'); return; }
+
+  const btn = document.getElementById('btnSaveNew');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+
+  const data = collectFormData('');
+
+  try {
+    const res = await notionRequest('POST', '/pages', {
+      parent: { database_id: CONFIG.DATABASE_ID },
+      properties: buildProperties(name, date, data)
+    });
+    if (res.id) {
+      showToast('✅ 保存しました！', 'success');
+      resetNewForm();
+    } else {
+      throw new Error('保存に失敗しました');
     }
-  );
+  } catch(e) {
+    showToast('❌ エラー：' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Notionに保存する';
+}
+
+// ============================================================
+// 検索（利用者名で絞り込み）
+// ============================================================
+async function searchRecords() {
+  const user = document.getElementById('searchUser').value;
+  if (!user) { showToast('利用者名を選択してください', 'error'); return; }
+
+  const resultsDiv = document.getElementById('searchResults');
+  resultsDiv.innerHTML = '<div class="loading">🔍 検索中...</div>';
+
+  try {
+    const res = await notionRequest('POST', `/databases/${CONFIG.DATABASE_ID}/query`, {
+      filter: {
+        property: '利用者名',
+        title: { contains: user }
+      },
+      sorts: [{ property: '実施日', direction: 'descending' }],
+      page_size: 20
+    });
+
+    if (!res.results || res.results.length === 0) {
+      resultsDiv.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <p>「${user}」の記録が見つかりませんでした</p>
+        </div>`;
+      return;
+    }
+
+    resultsDiv.innerHTML = `<div class="result-list"></div>`;
+    const list = resultsDiv.querySelector('.result-list');
+
+    res.results.forEach(page => {
+      const props = page.properties;
+      const name = props['利用者名']?.title?.[0]?.plain_text || '';
+      const date = props['実施日']?.date?.start || '日付なし';
+      const condition = (props['体調']?.multi_select || []).map(s => s.name).join('、');
+      const activity = (props['活動']?.multi_select || []).map(s => s.name).join('、');
+      const meal = (props['マルチセレクト']?.multi_select || []).map(s => s.name).join('、');
+
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = `
+        <div class="result-name">📋 ${name}</div>
+        <div class="result-date">📅 ${date}</div>
+        <div class="result-tags">
+          ${condition ? `<span class="result-tag">体調：${condition}</span>` : ''}
+          ${activity ? `<span class="result-tag">活動：${activity}</span>` : ''}
+          ${meal ? `<span class="result-tag">食事：${meal}</span>` : ''}
+        </div>
+      `;
+      item.addEventListener('click', () => openEditForm(page));
+      list.appendChild(item);
+    });
+
+  } catch(e) {
+    resultsDiv.innerHTML = `<div class="empty-state"><p>❌ エラー：${e.message}</p></div>`;
+  }
+}
+
+// ============================================================
+// 編集フォームを開く
+// ============================================================
+function openEditForm(page) {
+  currentPageId = page.id;
+  const props = page.properties;
+
+  // 値を反映
+  document.getElementById('editUserName').value = props['利用者名']?.title?.[0]?.plain_text || '';
+  document.getElementById('editDate').value = props['実施日']?.date?.start || '';
+  document.getElementById('editVital').value = props['バイタル']?.rich_text?.[0]?.plain_text || '';
+  document.getElementById('editVital2').value = props['バイタル（再検）']?.rich_text?.[0]?.plain_text || '';
+  document.getElementById('editMemo').value = props['メモ']?.rich_text?.[0]?.plain_text || '';
+
+  // チップを反映
+  const conditions = (props['体調']?.multi_select || []).map(s => s.name);
+  setChips('editConditionChips', conditions);
+
+  const activities = (props['活動']?.multi_select || []).map(s => s.name);
+  setChips('editActivityChips', activities);
+
+  const meals = (props['マルチセレクト']?.multi_select || []).map(s => s.name);
+  setChips('editMealChips', meals);
+
+  // 表示切り替え
+  document.getElementById('searchArea').style.display = 'none';
+  document.getElementById('editArea').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function setChips(groupId, values) {
+  document.querySelectorAll('#' + groupId + ' .chip').forEach(chip => {
+    chip.classList.toggle('selected', values.includes(chip.dataset.val));
+  });
+}
+
+function backToSearch() {
+  currentPageId = null;
+  document.getElementById('searchArea').style.display = 'block';
+  document.getElementById('editArea').style.display = 'none';
+}
+
+// ============================================================
+// 更新保存
+// ============================================================
+async function updateRecord() {
+  if (!currentPageId) return;
+  const date = document.getElementById('editDate').value;
+  const name = document.getElementById('editUserName').value;
+  if (!date) { showToast('実施日を入力してください', 'error'); return; }
+
+  const btn = document.getElementById('btnUpdate');
+  btn.disabled = true;
+  btn.textContent = '更新中...';
+
+  const data = collectFormData('edit');
+
+  try {
+    const res = await notionRequest('PATCH', `/pages/${currentPageId}`, {
+      properties: buildProperties(name, date, data)
+    });
+    if (res.id) {
+      showToast('✅ 記録を更新しました！', 'success');
+      backToSearch();
+    } else {
+      throw new Error('更新に失敗しました');
+    }
+  } catch(e) {
+    showToast('❌ エラー：' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔄 この記録を更新して保存する';
+}
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function collectFormData(prefix) {
+  const p = prefix ? prefix.charAt(0).toUpperCase() + prefix.slice(1) : '';
+  const getChips = id => Array.from(document.querySelectorAll(`#${id} .chip.selected`)).map(c => c.dataset.val);
+
+  return {
+    vital: document.getElementById(prefix ? 'editVital' : 'vital').value,
+    vital2: document.getElementById(prefix ? 'editVital2' : 'vital2').value,
+    memo: document.getElementById(prefix ? 'editMemo' : 'memo').value,
+    conditions: getChips(prefix ? 'editConditionChips' : 'conditionChips'),
+    activities: getChips(prefix ? 'editActivityChips' : 'activityChips'),
+    meals: getChips(prefix ? 'editMealChips' : 'mealChips'),
+  };
+}
+
+function buildProperties(name, date, data) {
+  const props = {
+    '利用者名': { title: [{ text: { content: name } }] },
+    '実施日': { date: { start: date } },
+    'バイタル': { rich_text: [{ text: { content: data.vital } }] },
+    'バイタル（再検）': { rich_text: [{ text: { content: data.vital2 } }] },
+    'メモ': { rich_text: [{ text: { content: data.memo } }] },
+    '体調': { multi_select: data.conditions.map(n => ({ name: n })) },
+    '活動': { multi_select: data.activities.map(n => ({ name: n })) },
+    'マルチセレクト': { multi_select: data.meals.map(n => ({ name: n })) },
+  };
+  return props;
+}
+
+function resetNewForm() {
+  document.getElementById('userName').value = '';
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('vital').value = '';
+  document.getElementById('vital2').value = '';
+  document.getElementById('memo').value = '';
+  document.querySelectorAll('#panelNew .chip').forEach(c => c.classList.remove('selected'));
+}
+
+async function notionRequest(method, path, body) {
+  const res = await fetch(CONFIG.PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method,
+      path,
+      token: CONFIG.NOTION_TOKEN,
+      body: body || {}
+    })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-async function callGemini(prompt) {
-  let models = JSON.parse(localStorage.getItem('gemini_models') || 'null');
-  if (!models) {
-    models = await listGeminiModels();
-    if (!models.length) throw new Error('このAPIキーで使えるモデルがありません');
-    localStorage.setItem('gemini_models', JSON.stringify(models));
-  }
-
-  for (const model of models) {
-    // UNAVAILABLE（高負荷）は指数バックオフで最大3回リトライ
-    const MAX_RETRY = 3;
-    let data;
-    for (let attempt = 0; attempt <= MAX_RETRY; attempt++) {
-      if (attempt > 0) {
-        const waitSec = Math.pow(2, attempt); // 2秒 → 4秒 → 8秒
-        showLoading(
-          `サーバー高負荷のため${waitSec}秒後に再試行... (${attempt}/${MAX_RETRY})`,
-          `モデル: ${model}`
-        );
-        await new Promise(r => setTimeout(r, waitSec * 1000));
-      }
-
-      data = await geminiRequest(model, prompt);
-
-      // UNAVAILABLE → リトライ
-      if (data.error?.status === 'UNAVAILABLE' || data.error?.code === 503) {
-        if (attempt < MAX_RETRY) continue; // まだリトライ残あり
-        break; // 3回全滅 → 次のモデルへ
-      }
-
-      // レート制限 → APIが返す待機時間で1回だけリトライ
-      if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-        if (attempt === 0) {
-          const detail = (data.error?.details || []).find(d => d.retryDelay);
-          const delaySec = detail ? parseInt(detail.retryDelay) : 60;
-          showLoading(`制限中…${delaySec}秒待機してリトライします`, `モデル: ${model}`);
-          await new Promise(r => setTimeout(r, delaySec * 1000));
-          data = await geminiRequest(model, prompt);
-        }
-        break; // レート制限2回目 or 待機後もNG → 次のモデルへ
-      }
-
-      break; // エラーなし → ループ抜け
-    }
-
-    // 再度エラー確認（リトライ後）
-    if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') continue;
-    if (data.error?.status === 'UNAVAILABLE' || data.error?.code === 503) continue;
-    if (data.error) throw new Error(`${data.error.status}: ${data.error.message}`);
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-    if (text) {
-      localStorage.setItem('gemini_model', model);
-      return text;
-    }
-  }
-
-  // 全モデル失敗 → モデル一覧をリセットして次回再検出
-  localStorage.removeItem('gemini_models');
-  throw new Error('全モデルで失敗しました。\nしばらく時間をおいてから再試行してください。\n（Gemini高負荷または1日上限の可能性）');
-}
-
-// ── Notion 直接API（複数CORSプロキシ並列試行）──────────────────
-async function notionFetch(path, method='GET', body=null) {
-  const target = 'https://api.notion.com/v1' + path;
-  const headers = {
-    'Authorization': `Bearer ${getNotionToken()}`,
-    'Content-Type': 'application/json',
-    'Notion-Version': '2022-06-28'
-  };
-  const bodyStr = body ? JSON.stringify(body) : null;
-
-  // 各プロキシを1リクエストとしてラップ
-  async function tryProxy(proxyUrl) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20000);
-    try {
-      const res = await fetch(proxyUrl, { method, headers, body: bodyStr, signal: controller.signal });
-      clearTimeout(timer);
-      if (!res.ok) {
-        const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
-      }
-      return await res.json();
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  const proxyUrls = [
-    'https://corsproxy.io/?' + target,
-    'https://api.cors.lol/?url=' + encodeURIComponent(target),
-    'https://corsproxy.org/?' + target,
-  ];
-
-  // 全プロキシを並列で試し、最初に成功したものを使う
-  try {
-    return await Promise.any(proxyUrls.map(u => tryProxy(u)));
-  } catch(aggErr) {
-    // AggregateError から各エラーを取り出す
-    const msgs = (aggErr.errors || [aggErr]).map((e, i) => `[${i+1}] ${e.message}`).join('\n');
-    throw new Error(`全プロキシで失敗:\n${msgs}`);
-  }
-}
-
-// Notion トークンはlocalStorageに保存（公開リポジトリに入れると自動失効するため）
-const getNotionToken = () => localStorage.getItem('notion_token') || '';
-
-// 暗証番号（職員のみ共有）
-const PIN_CODE = "0375";
-
-// Notion DB ID（変更不要）
-const RENRAKUCHO_DB_ID = "325d6592-945a-80cc-8820-000bfbd88d5a";  // 連絡帳DB
-const USERS_DB_ID      = "1d9d6592-945a-813b-8784-000b28bd54fd";  // 利用者情報DB
-
-// ══════════════════════════════════════════════
-//  状態
-// ══════════════════════════════════════════════
-let selectedUser       = null;
-let selectedConditions = [];
-let selectedActivities = [];
-let selectedMeal       = null;
-let medBefore          = false;  // 昼食前服薬
-let medAfter           = false;  // 昼食後服薬
-let historyData        = [];
-let recheckOpen        = false;
-let userList           = [];
-let currentMode        = 'normal';  // 'normal' | 'bullet'
-
-// ══════════════════════════════════════════════
-//  モード切り替え
-// ══════════════════════════════════════════════
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('modeNormal').classList.toggle('active', mode === 'normal');
-  document.getElementById('modeBullet').classList.toggle('active', mode === 'bullet');
-  document.getElementById('normalModeArea').style.display = mode === 'normal' ? 'block' : 'none';
-  document.getElementById('bulletModeArea').style.display = mode === 'bullet' ? 'block' : 'none';
-}
-
-// ══════════════════════════════════════════════
-//  ログイン
-// ══════════════════════════════════════════════
-function doLogin() {
-  const pin = document.getElementById('pinInput').value.trim();
-  if (pin === PIN_CODE) {
-    document.getElementById('loginScreen').style.display = 'none';
-    if (!getApiKey()) {
-      document.getElementById('setupScreen').style.display = 'flex';
-    } else {
-      document.getElementById('appScreen').style.display = 'block';
-      initApp();
-    }
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('pinInput').value = '';
-    document.getElementById('pinInput').focus();
-    setTimeout(() => document.getElementById('loginError').style.display = 'none', 2500);
-  }
-}
-
-function doSaveApiKey() {
-  const key   = document.getElementById('apiKeySetup').value.trim();
-  const errEl = document.getElementById('setupError');
-  if (!key.startsWith('AIza')) {
-    errEl.textContent = '❌ AIzaSy...で始まるキーを入力してください';
-    errEl.style.display = 'block';
-    setTimeout(() => errEl.style.display = 'none', 2500);
-    return;
-  }
-  localStorage.setItem('gemini_api_key', key);
-  localStorage.removeItem('gemini_model');
-  localStorage.removeItem('gemini_models');
-  localStorage.removeItem('gemini_skip');
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
-  initApp();
-}
-
-const getGasUrl = () => localStorage.getItem('gas_url') || '';
-
-function openNotionModal() {
-  document.getElementById('gasUrlInput').value = getGasUrl();
-  document.getElementById('notionTokenInput').value = getNotionToken();
-  document.getElementById('notionModalError').style.display = 'none';
-  document.getElementById('gasTestResult').style.display = 'none';
-  document.getElementById('notionModal').style.display = 'flex';
-}
-
-function saveGasUrl() {
-  const url = document.getElementById('gasUrlInput').value.trim();
-  const errEl = document.getElementById('notionModalError');
-  if (!url.startsWith('https://script.google.com/')) {
-    errEl.textContent = '❌ https://script.google.com/macros/s/...で始まるURLを入力してください';
-    errEl.style.display = 'block';
-    return;
-  }
-  localStorage.setItem('gas_url', url);
-  document.getElementById('notionModal').style.display = 'none';
-  showToast('✅ スプレッドシートURLを保存しました');
-}
-
-function saveNotionToken() {
-  const token = document.getElementById('notionTokenInput').value.trim();
-  const errEl = document.getElementById('notionModalError');
-  if (!token.startsWith('ntn_') && !token.startsWith('secret_')) {
-    errEl.textContent = '❌ ntn_ または secret_ で始まるトークンを入力してください';
-    errEl.style.display = 'block';
-    return;
-  }
-  localStorage.setItem('notion_token', token);
-  document.getElementById('notionModal').style.display = 'none';
-  showToast('✅ Notionトークンを保存しました');
-}
-
-function copyGasScript() {
-  const text = document.getElementById('gasScriptArea').value;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 スクリプトをコピーしました'))
-    .catch(() => { document.getElementById('gasScriptArea').select(); showToast('📋 テキストを選択しました'); });
-}
-
-// ── GAS接続テスト ──
-async function testGasConnection() {
-  const url = document.getElementById('gasUrlInput').value.trim();
-  const resultEl = document.getElementById('gasTestResult');
-  if (!url.startsWith('https://script.google.com/')) {
-    resultEl.style.display = 'block';
-    resultEl.style.background = '#FEF2F2';
-    resultEl.style.color = '#DC2626';
-    resultEl.textContent = '❌ URLを先に入力してください';
-    return;
-  }
-  resultEl.style.display = 'block';
-  resultEl.style.background = '#F1F5F9';
-  resultEl.style.color = '#475569';
-  resultEl.textContent = '🔄 テスト中...';
-  try {
-    const testPayload = JSON.stringify({date:'テスト',user:'テスト接続',conditions:'',activities:'',meal:'',medication:'',vital:'',message:'接続テスト（このデータは削除してください）'});
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: testPayload
-    });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = null; }
-    if (data && data.ok) {
-      resultEl.style.background = '#F0FDF4';
-      resultEl.style.color = '#166534';
-      resultEl.textContent = '✅ 接続成功！スプレッドシートに書き込めました。URLを保存してください。';
-    } else {
-      resultEl.style.background = '#FEF2F2';
-      resultEl.style.color = '#DC2626';
-      resultEl.textContent = `❌ GASエラー: ${data?.error || text.slice(0,200) || 'レスポンス不正'}`;
-    }
-  } catch(e) {
-    resultEl.style.background = '#FEF2F2';
-    resultEl.style.color = '#DC2626';
-    resultEl.textContent = `❌ 接続失敗: ${e.message}。デプロイ設定を確認してください（アクセス：全員）`;
-  }
-}
-
-// ── Googleスプレッドシート保存（GAS経由・CORS問題なし）──
-async function saveToSheets(record) {
-  const url = getGasUrl();
-  if (!url) return false;
-
-  const payload = JSON.stringify(record);
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // シンプルリクエスト（CORSプリフライト不要）
-      body: payload
-    });
-    if (!res.ok) throw new Error(`HTTPエラー ${res.status}: ${res.statusText}`);
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch {
-      throw new Error(`レスポンスがJSONではありません: ${text.slice(0,100)}`);
-    }
-    if (data.ok) return true;
-    throw new Error(data.error || '不明なGASエラー');
-  } catch(e) {
-    throw new Error(`スプレッドシート保存エラー: ${e.message}`);
-  }
-}
-
-// ── ローカル保存（localStorage蓄積）──
-const LOCAL_RECORDS_KEY = 'renrakucho_records';
-
-function buildRecord() {
-  const temp  = document.getElementById('temp').value;
-  const bp    = document.getElementById('bp').value;
-  const pulse = document.getElementById('pulse').value;
-  const temp2  = document.getElementById('temp2')?.value || '';
-  const bp2    = document.getElementById('bp2')?.value   || '';
-  const pulse2 = document.getElementById('pulse2')?.value || '';
-  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
-  const medText = [
-    medBefore ? '昼食前:済' : '',
-    medAfter  ? '昼食後:済' : '',
-    prn       ? `頓服:${prn}` : ''
-  ].filter(Boolean).join(' / ');
-  return {
-    date:       document.getElementById('dateInput').value,
-    user:       selectedUser,
-    residence:  usersResidence[selectedUser] || '',
-    conditions: selectedConditions.join('・'),
-    activities: selectedActivities.join('・'),
-    meal:       selectedMeal || '',
-    medication: medText,
-    temp:       temp  ? `${temp}℃`    : '—',
-    bp:         bp    ? bp             : '—',
-    pulse:      pulse ? `${pulse}回/分` : '—',
-    recheck:    recheckOpen ? buildVital(temp2, bp2, pulse2) : '',
-    vital:      buildVital(temp, bp, pulse),
-    message:    document.getElementById('resultText').textContent,
-    savedAt:    new Date().toLocaleString('ja-JP')
-  };
-}
-
-function saveToLocal(record) {
-  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
-  records.push(record);
-  localStorage.setItem(LOCAL_RECORDS_KEY, JSON.stringify(records));
-  updateCsvCount();
-}
-
-function updateCsvCount() {
-  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
-  document.getElementById('csvCount').textContent = records.length;
-}
-
-function openCsvModal() {
-  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
-  const summaryEl = document.getElementById('csvSummary');
-  if (records.length === 0) {
-    summaryEl.textContent = '保存データはまだありません。';
-  } else {
-    const dates = records.map(r => r.date).filter(Boolean);
-    const users = [...new Set(records.map(r => r.user).filter(Boolean))];
-    summaryEl.innerHTML = `📋 <strong>${records.length}件</strong>のデータが保存されています<br>
-      期間：${dates[0] || '-'} ～ ${dates[dates.length-1] || '-'}<br>
-      利用者：${users.join('、') || '-'}`;
-  }
-  document.getElementById('csvModal').style.display = 'flex';
-}
-
-function escapeCsvField(val) {
-  const s = String(val ?? '');
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-}
-
-function downloadCsv() {
-  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
-  if (records.length === 0) { showToast('⚠️ 保存データがありません'); return; }
-  const headers = ['実施日','利用者名','体調','活動','食事量','服薬','バイタル','連絡帳文章','保存日時'];
-  const keys    = ['date','user','conditions','activities','meal','medication','vital','message','savedAt'];
-  const rows = [headers.map(escapeCsvField).join(',')];
-  for (const r of records) {
-    rows.push(keys.map(k => escapeCsvField(r[k])).join(','));
-  }
-  // BOM付きUTF-8でExcelが文字化けしない
-  const bom = '\uFEFF';
-  const blob = new Blob([bom + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const today = new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
-  a.href = url;
-  a.download = `連絡帳_${today}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📥 CSVをダウンロードしました');
-}
-
-function confirmClearData() {
-  const records = JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY) || '[]');
-  if (records.length === 0) { showToast('消去するデータがありません'); return; }
-  if (!confirm(`${records.length}件のデータを消去しますか？\n（先にCSVをダウンロードしてから消去してください）`)) return;
-  localStorage.removeItem(LOCAL_RECORDS_KEY);
-  updateCsvCount();
-  document.getElementById('csvModal').style.display = 'none';
-  showToast('🗑️ データを消去しました');
-}
-
-// ── 統合保存処理（ローカル保存必須 ＋ Sheets/Notion オプション）──
-async function doSave(auto = false) {
-  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
-
-  const record = buildRecord();
-
-  // ① 必ずローカルに保存（常に成功）
-  saveToLocal(record);
-  hideNotionError();
-  showToast(auto ? '✅ 自動保存しました！' : '✅ 保存しました！');
-  if (!auto) setTimeout(resetForm, 1800);
-
-  // ② オプション：GAS連携（設定済みの場合のみ）
-  const hasSheets = !!getGasUrl();
-  if (hasSheets) {
-    try {
-      await saveToSheets(record);
-    } catch(e) {
-      // GAS失敗してもローカル保存は成功済みなので警告のみ
-      console.warn('GAS保存失敗（ローカル保存は成功）:', e.message);
-    }
-  }
-}
-
-function doLogout() {
-  document.getElementById('appScreen').style.display  = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('pinInput').value = '';
-  resetForm();
-}
-
-function resetApiKey() {
-  localStorage.removeItem('gemini_api_key');
-  document.getElementById('apiKeySetup').value = '';
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('setupScreen').style.display = 'flex';
-}
-
-// ══════════════════════════════════════════════
-//  アプリ初期化
-// ══════════════════════════════════════════════
-async function initApp() {
-  const today = new Date();
-  document.getElementById('dateInput').value = today.toISOString().split('T')[0];
-  document.getElementById('headerDate').textContent =
-    today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
-  updateCsvCount();
-  await loadUsersFromNotion();
-}
-
-// ══════════════════════════════════════════════
-//  利用者名リスト（Notionから取得済み・直接埋め込み）
-//  ※ 利用者が増減した場合はここを更新してください
-// ══════════════════════════════════════════════
-const USERS_LIST = [
-  "岡野 久子", "佐藤 嵩彦", "櫻井憲二", "横塚時也", "櫻井 麻弥",
-  "安達 愛香", "山田 美穂", "金井 直美", "石井 美弥子", "岡田 正末",
-  "富田 蓮人", "柴山 美香", "丸山 登志子", "堀川 明美", "堀米亜希子",
-  "萩原 奈津樹", "石原皇太"
-];
-
-// 利用者ごとの居住区分（Notionから取得）
-let usersResidence = {};
-
-async function loadUsersResidence() {
-  try {
-    const data = await notionFetch(
-      `/databases/${USERS_DB_ID}/query`, 'POST',
-      { page_size: 50 }
-    );
-    for (const page of (data.results || [])) {
-      const props = page.properties || {};
-      const name = (props['氏名 / 個別支援計画']?.title || []).map(t => t.plain_text).join('').trim();
-      const residence = props['居住']?.select?.name || null;
-      if (name && residence) usersResidence[name] = residence;
-    }
-  } catch (e) {
-    // 取得失敗時はプロンプトに居住情報を含めない
-  }
-}
-
-function getResidenceInstruction(userName) {
-  const r = Object.entries(usersResidence).find(([k]) => userName.includes(k.replace(/\s/g,'')) || k.replace(/\s/g,'').includes(userName.replace(/\s/g,'')))?.[1]
-           || usersResidence[userName] || null;
-  if (!r) return '';
-  if (r === '自宅') {
-    return `【送付先】ご家族（自宅）
-- ご家族が直接受け取る連絡帳として、温かく親しみやすい文体で`;
-  } else {
-    return `【送付先】${r}（グループホーム）経由でご家族へ
-- グループホームのスタッフとご家族の両方が読む想定で、丁寧かつ分かりやすい文体で
-- 「グループホームのスタッフの皆様にもお伝えいただければ幸いです」等の一文は不要`;
-  }
-}
-
-async function loadUsersFromNotion() {
-  userList = USERS_LIST;
-  renderUserButtons(USERS_LIST);
-  loadUsersResidence(); // 居住情報をバックグラウンドで取得
-}
-
-function showManualInput() {
-  const loading = document.getElementById('userLoadingMsg');
-  const grid    = document.getElementById('userGrid');
-  loading.style.display = 'none';
-  grid.style.display    = 'block';
-  grid.innerHTML = `
-    <div style="font-size:12px;color:var(--warn);margin-bottom:8px;padding:8px 10px;background:var(--warn-light);border-radius:var(--radius-sm);">
-      ⚠️ Notionから利用者情報を取得できませんでした。<br>直接入力してください。
-    </div>
-    <div style="display:flex;gap:8px;">
-      <input type="text" id="manualUserInput" class="input" placeholder="利用者名を入力（例：山田 太郎）" style="flex:1;">
-      <button onclick="confirmManualUser()" style="padding:10px 14px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-weight:700;cursor:pointer;white-space:nowrap;">確定</button>
-    </div>
-    <div id="manualUserSelected" style="margin-top:8px;font-size:13px;color:var(--success);font-weight:700;display:none;"></div>
-  `;
-}
-
-function confirmManualUser() {
-  const name = document.getElementById('manualUserInput').value.trim();
-  if (!name) { showToast('⚠️ 利用者名を入力してください'); return; }
-  selectedUser = name;
-  document.getElementById('manualUserSelected').textContent = `✅ 選択中：${name}`;
-  document.getElementById('manualUserSelected').style.display = 'block';
-  document.getElementById('historyCard').style.display = 'block';
-  loadHistory(name);
-  showToast(`👤 ${name} を選択しました`);
-}
-
-function renderUserButtons(names) {
-  const loading = document.getElementById('userLoadingMsg');
-  const grid    = document.getElementById('userGrid');
-  loading.style.display = 'none';
-  grid.style.display    = 'grid';
-  grid.innerHTML = '';
-  names.forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'user-btn';
-    btn.textContent = name;
-    btn.onclick = () => selectUser(name, btn);
-    grid.appendChild(btn);
-  });
-}
-
-// ══════════════════════════════════════════════
-//  フォーム操作
-// ══════════════════════════════════════════════
-function selectUser(name, btn) {
-  selectedUser = name;
-  document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('historyCard').style.display = 'block';
-  loadHistory(name);
-}
-
-function toggleRecheck() {
-  recheckOpen = !recheckOpen;
-  document.getElementById('recheckToggle').classList.toggle('active', recheckOpen);
-  document.getElementById('recheckArea').classList.toggle('show', recheckOpen);
-  if (!recheckOpen) ['temp2','bp2','pulse2'].forEach(id => document.getElementById(id).value = '');
-}
-
-function toggleChip(el, type, value, cls) {
-  if (type === 'condition') {
-    const i = selectedConditions.indexOf(value);
-    if (i >= 0) { selectedConditions.splice(i,1); el.className='chip'; }
-    else { selectedConditions.push(value); el.className=`chip ${cls}`; }
-  } else {
-    const i = selectedActivities.indexOf(value);
-    if (i >= 0) { selectedActivities.splice(i,1); el.className='chip'; }
-    else { selectedActivities.push(value); el.className=`chip ${cls}`; }
-  }
-}
-
-function selectMeal(el, val) {
-  selectedMeal = val;
-  document.querySelectorAll('.meal-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function toggleMed(type) {
-  if (type === 'before') {
-    medBefore = !medBefore;
-    document.getElementById('medBeforeBtn').classList.toggle('selected', medBefore);
-  } else {
-    medAfter = !medAfter;
-    document.getElementById('medAfterBtn').classList.toggle('selected', medAfter);
-  }
-}
-
-function toggleHistory() {
-  const btn  = document.getElementById('historyToggle');
-  const body = document.getElementById('historyBody');
-  btn.classList.toggle('open');
-  body.classList.toggle('open');
-}
-
-// ══════════════════════════════════════════════
-//  過去記録ロード
-// ══════════════════════════════════════════════
-async function loadHistory(userName) {
-  const list = document.getElementById('historyList');
-  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ 読み込み中...</div>';
-
-  try {
-    const data = await notionFetch(
-      `/databases/${RENRAKUCHO_DB_ID}/query`, 'POST',
-      { sorts: [{ property: '実施日', direction: 'descending' }], page_size: 30 }
-    );
-    const pages = (data.results || []).filter(p => {
-      const props = p.properties || {};
-      const nameVal = Object.values(props).find(v =>
-        (v.type === 'title' && v.title?.map(t=>t.plain_text).join('').includes(userName)) ||
-        (v.type === 'rich_text' && v.rich_text?.map(t=>t.plain_text).join('').includes(userName))
-      );
-      return !!nameVal;
-    }).slice(0, 3);
-
-    const records = pages.map(p => {
-      const props = p.properties || {};
-      const get = (key, type) => props[key]?.[type] ?? null;
-      return {
-        date: get('実施日','date')?.start || '',
-        condition: (get('体調','multi_select') || []).map(s=>s.name),
-        activity:  (get('活動','multi_select') || []).map(s=>s.name),
-        meal: (get('食事量','select') || get('マルチセレクト（食事量）','select'))?.name
-              || (get('食事量','multi_select') || get('マルチセレクト（食事量）','multi_select') || []).map(s=>s.name).join('・'),
-        memo: (get('メモ','rich_text') || []).map(t=>t.plain_text).join('')
-      };
-    });
-
-    historyData = records;
-    if (records.length === 0) {
-      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
-      return;
-    }
-    list.innerHTML = records.map(h => `
-      <div class="history-item">
-        <div class="history-date">📅 ${fmtDate(h.date)}</div>
-        <div class="history-chips">
-          ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
-          ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
-          ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
-        </div>
-        <div class="history-memo">${h.memo||''}</div>
-      </div>
-    `).join('');
-  } catch(e) {
-    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⚠️ 過去記録の取得に失敗しました</div>';
-  }
-}
-
-// ══════════════════════════════════════════════
-//  AI文章生成
-// ══════════════════════════════════════════════
-async function generateText() {
-  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
-  if (!getApiKey()) { showToast('⚠️ システムエラー: APIキーが設定されていません'); return; }
-
-  const temp   = document.getElementById('temp').value;
-  const bp     = document.getElementById('bp').value;
-  const pulse  = document.getElementById('pulse').value;
-  const temp2  = document.getElementById('temp2').value;
-  const bp2    = document.getElementById('bp2').value;
-  const pulse2 = document.getElementById('pulse2').value;
-  const date   = document.getElementById('dateInput').value;
-
-  const vital1 = buildVital(temp, bp, pulse);
-  const vital2 = recheckOpen ? buildVital(temp2, bp2, pulse2) : '';
-  const recheckNote = vital2 ? `\n【再検バイタル】${vital2}（再検があった旨を文中に自然に含めること）` : '';
-
-  const histCtx = historyData.length > 0
-    ? '\n\n【直近の記録（参考）】\n' + historyData.map(h =>
-        `${h.date}: 体調=${(h.condition||[]).join('・')} 活動=${(h.activity||[]).join('・')} 食事=${h.meal||''} メモ:${h.memo||''}`
-      ).join('\n')
-    : '';
-
-  let prompt;
-
-  if (currentMode === 'bullet') {
-    // ── 箇条書きモード専用プロンプト ──
-    const bulletText = document.getElementById('bulletInput').value.trim();
-    if (!bulletText) { showToast('⚠️ 箇条書きを入力してください'); return; }
-
-    const residenceInst1 = getResidenceInstruction(selectedUser);
-    prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
-以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
-
-【利用者】${selectedUser}
-【実施日】${fmtDate(date)}
-【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
-${residenceInst1 ? residenceInst1 + '\n' : ''}【今日の様子（箇条書き）】
-${bulletText}
-${histCtx}
-
-【文章作成のルール】
-- 上記の箇条書きを自然な保護者向け文章に変換する
-- 利用者の家族が読む連絡帳として丁寧で温かみのある文体
-- 60〜80字程度（厳守）
-- バイタル数値は文中に含めず状態として表現する
-- 再検がある場合はその旨を自然に一文で盛り込む
-- 箇条書きの内容を漏れなく、しかし自然な流れで組み込む
-- 結びは「引き続き見守ってまいります」等で締める
-- 「本日は〜」または「今日は〜」で書き出す
-- 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
-- 利用者名は文中に含めないこと（名前は連絡帳ヘッダーに別途記載されているため不要）
-- JSONや箇条書きにせず連続した文章として出力する`;
-
-  } else {
-    // ── 通常モードプロンプト ──
-    const memo = document.getElementById('memoInput').value.trim();
-    const hasBullets = memo && memo.split('\n').some(line => line.trim().startsWith('・') || line.trim().startsWith('-') || line.trim().startsWith('•'));
-    const memoInstruction = hasBullets
-      ? '【担当者メモ（箇条書き）】以下の箇条書きを自然な文章に展開して組み込むこと：\n' + memo
-      : `【担当者メモ】${memo || 'なし'}`;
-
-    const residenceInst2 = getResidenceInstruction(selectedUser);
-    prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
-以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
-
-【利用者】${selectedUser}
-【実施日】${fmtDate(date)}
-【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
-${residenceInst2 ? residenceInst2 + '\n' : ''}【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
-【本日の活動】${selectedActivities.length ? selectedActivities.join('、') : '記録なし'}
-【食事摂取量】${selectedMeal || '記録なし'}
-【服薬】昼食前:${medBefore ? '服薬済み' : '未'} / 昼食後:${medAfter ? '服薬済み' : '未'}${document.getElementById('medPrnInput')?.value.trim() ? ' / 頓服:' + document.getElementById('medPrnInput').value.trim() : ''}
-${memoInstruction}${histCtx}
-
-【文章作成のルール】
-- 利用者の家族が読む連絡帳として丁寧で温かみのある文体
-- 60〜80字程度（厳守）
-- 体調 → 活動 → 食事 の順で自然な流れ
-- バイタル数値は文中に含めず状態として表現する
-- 再検がある場合はその旨を自然に一文で盛り込む
-- 担当者メモの内容（箇条書きの場合は展開して）を自然に組み込む
-- 結びは「引き続き見守ってまいります」等で締める
-- 「本日は〜」または「今日は〜」で書き出す
-- 敬語・丁寧語を使う（「拝啓」「敬具」等の書簡形式は使わない）
-- 利用者名は文中に含めないこと（名前は連絡帳ヘッダーに別途記載されているため不要）
-- JSONや箇条書きにせず連続した文章として出力する`;
-  }
-
-  showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
-
-  try {
-    const text = await callGemini(prompt);
-    hideLoading();
-    document.getElementById('resultText').textContent = text;
-    const rc = document.getElementById('resultCard');
-    rc.classList.add('show');
-    rc.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    showToast('✨ 生成完了！自動保存しました');
-    // 自動保存（非同期・失敗してもUIはブロックしない）
-    doSave(true);
-  } catch(e) {
-    hideLoading();
-    document.getElementById('resultText').textContent = `⚠️ エラー内容:\n${e.message}`;
-    document.getElementById('resultCard').classList.add('show');
-    showToast('❌ 生成に失敗しました');
-  }
-}
-
-// ══════════════════════════════════════════════
-//  Notion保存
-// ══════════════════════════════════════════════
-async function saveToNotion(auto = false) {
-  if (!selectedUser) { showToast('⚠️ 利用者を選択してください'); return; }
-
-  // トークン未設定チェック
-  if (!getNotionToken()) {
-    hideLoading();
-    showNotionError('Notionトークンが未設定です。\nヘッダーの「Notion設定」ボタンからトークンを入力してください。');
-    if (!auto) openNotionModal();
-    return;
-  }
-
-  const memo   = document.getElementById('resultText').textContent;
-  const date   = document.getElementById('dateInput').value;
-  const vital1 = buildVital(document.getElementById('temp').value, document.getElementById('bp').value, document.getElementById('pulse').value);
-  const vital2 = recheckOpen ? buildVital(document.getElementById('temp2').value, document.getElementById('bp2').value, document.getElementById('pulse2').value) : '';
-
-  // 保存時の体調・活動（箇条書きモードでは未選択の場合がある）
-  const conditions = selectedConditions.length ? selectedConditions.join(', ') : '';
-  const activities = selectedActivities.length ? selectedActivities.join(', ') : '';
-  const meal = selectedMeal || '';
-
-  if (!auto) showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
-
-  const toMultiSelect = str => str ? str.split(/[,、・]/).map(s=>s.trim()).filter(Boolean).map(name=>({name})) : [];
-  const toRichText   = str => str ? [{ type:'text', text:{ content: str } }] : [];
-
-  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
-  const medText = [
-    medBefore ? '昼食前:済' : '',
-    medAfter  ? '昼食後:済' : '',
-    prn       ? `頓服:${prn}` : ''
-  ].filter(Boolean).join(' / ');
-
-  const memoFull = [
-    vital1   ? `【バイタル】${vital1}` : '',
-    vital2   ? `【再検バイタル】${vital2}` : '',
-    medText  ? `【服薬】${medText}` : '',
-    memo     ? `【連絡帳】${memo}` : ''
-  ].filter(Boolean).join('\n');
-
-  const properties = {
-    '利用者名': { title: toRichText(selectedUser) },
-    '実施日':   { date:  { start: date } },
-    '体調':     { multi_select: toMultiSelect(conditions) },
-    '活動':     { multi_select: toMultiSelect(activities) },
-    'マルチセレクト（食事量）': { multi_select: toMultiSelect(meal) },
-    'メモ':     { rich_text: toRichText(memoFull) }
-  };
-
-  try {
-    const data = await notionFetch('/pages', 'POST', {
-      parent: { database_id: RENRAKUCHO_DB_ID },
-      properties
-    });
-    hideLoading();
-    if (data.id) {
-      hideNotionError();
-      showToast(auto ? '✅ Notionに自動保存しました！' : '✅ Notionに保存しました！');
-      if (!auto) setTimeout(resetForm, 1800);
-    } else {
-      throw new Error(data.message || data.code || JSON.stringify(data).slice(0, 120));
-    }
-  } catch(e) {
-    hideLoading();
-    const is401 = e.message.includes('401');
-    if (is401) {
-      showNotionError('Notionトークンが無効です（401）。\nNotion側で「シークレットを再発行」して「Notion設定」ボタンから新しいトークンを入力してください。');
-      if (!auto) openNotionModal();
-    } else {
-      showNotionError(e.message);
-    }
-    showToast(auto ? '⚠️ 自動保存に失敗しました' : '❌ Notion保存に失敗しました');
-  }
-}
-
-function showNotionError(msg) {
-  const area = document.getElementById('notionErrorArea');
-  if (!area) return;
-  document.getElementById('notionErrorMsg').textContent = msg;
-  area.style.display = 'block';
-}
-function hideNotionError() {
-  const area = document.getElementById('notionErrorArea');
-  if (area) area.style.display = 'none';
-}
-
-// ══════════════════════════════════════════════
-//  コピー
-// ══════════════════════════════════════════════
-async function copyText() {
-  const text = document.getElementById('resultText').textContent;
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast('📋 クリップボードにコピーしました');
-  } catch {
-    const el = document.getElementById('resultText');
-    const r = document.createRange(); r.selectNodeContents(el);
-    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
-    showToast('📋 テキストを選択しました');
-  }
-}
-
-// ══════════════════════════════════════════════
-//  印刷
-// ══════════════════════════════════════════════
-function printResult() {
-  const temp  = document.getElementById('temp').value;
-  const bp    = document.getElementById('bp').value;
-  const pulse = document.getElementById('pulse').value;
-  const temp2  = document.getElementById('temp2').value;
-  const bp2    = document.getElementById('bp2').value;
-  const pulse2 = document.getElementById('pulse2').value;
-  const prn = document.getElementById('medPrnInput')?.value.trim() || '';
-
-  const medParts = [
-    medBefore ? '昼食前✓' : '昼食前□',
-    medAfter  ? '昼食後✓' : '昼食後□',
-    `頓服:${prn || '　　　'}`
-  ];
-
-  const dateStr = fmtDate(document.getElementById('dateInput').value);
-  const user    = selectedUser || '';
-  const residence = usersResidence[user] || '';
-  const conditions = selectedConditions.join('・') || '記録なし';
-  const activities = selectedActivities.join('・') || '記録なし';
-  const meal = selectedMeal || '記録なし';
-  const msgText = document.getElementById('resultText').textContent;
-  const ts = new Date().toLocaleString('ja-JP');
-  const recheckVal = recheckOpen ? buildVital(temp2, bp2, pulse2) : '';
-
-  // 1枚目・2枚目に同じ内容をセット
-  [1, 2].forEach(n => {
-    document.getElementById(`printUser${n}`).textContent      = user;
-    document.getElementById(`printDate${n}`).textContent      = dateStr;
-    document.getElementById(`printResidence${n}`).textContent = residence;
-    document.getElementById(`printTemp${n}`).textContent      = temp  ? `${temp}℃`   : '—';
-    document.getElementById(`printBP${n}`).textContent        = bp    ? bp            : '—';
-    document.getElementById(`printPulse${n}`).textContent     = pulse ? `${pulse}回/分` : '—';
-    document.getElementById(`printConditions${n}`).textContent = conditions;
-    document.getElementById(`printActivities${n}`).textContent = activities;
-    document.getElementById(`printMeal${n}`).textContent       = meal;
-    document.getElementById(`printMed${n}`).textContent        = medParts.join('  ');
-    document.getElementById(`printText${n}`).textContent       = msgText;
-    document.getElementById(`printTimestamp${n}`).textContent  = ts;
-
-    const rb = document.getElementById(`printRecheckBox${n}`);
-    if (recheckVal) {
-      rb.style.display = '';
-      document.getElementById(`printRecheck${n}`).textContent = recheckVal;
-    } else {
-      rb.style.display = 'none';
-    }
-  });
-
-  window.print();
-}
-
-// ══════════════════════════════════════════════
-//  リセット
-// ══════════════════════════════════════════════
-function resetForm() {
-  selectedUser=null; selectedConditions=[]; selectedActivities=[]; selectedMeal=null; historyData=[];
-  medBefore=false; medAfter=false;
-  document.getElementById('medBeforeBtn').classList.remove('selected');
-  document.getElementById('medAfterBtn').classList.remove('selected');
-  document.getElementById('medPrnInput').value = '';
-  document.querySelectorAll('.user-btn').forEach(b=>b.classList.remove('selected'));
-  document.querySelectorAll('.chip').forEach(c=>{c.className='chip';});
-  document.querySelectorAll('.meal-btn').forEach(b=>b.classList.remove('selected'));
-  ['temp','bp','pulse','temp2','bp2','pulse2'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('memoInput').value='';
-  document.getElementById('bulletInput').value='';
-  document.getElementById('resultCard').classList.remove('show');
-  hideNotionError();
-  document.getElementById('historyCard').style.display='none';
-  if (recheckOpen) toggleRecheck();
-  document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
-  setMode('normal');
-  window.scrollTo({top:0,behavior:'smooth'});
-  showToast('🎉 入力をリセットしました');
-}
-
-// ══════════════════════════════════════════════
-//  ユーティリティ
-// ══════════════════════════════════════════════
-function buildVital(temp, bp, pulse) {
-  return [temp?`T ${temp}℃`:'', bp?`BP ${bp}`:'', pulse?`P ${pulse}回/分`:''].filter(Boolean).join('  ');
-}
-function fmtDate(str) {
-  if (!str) return '';
-  const d = new Date(str + 'T00:00:00');
-  return d.toLocaleDateString('ja-JP', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-}
-function showLoading(title, sub) {
-  document.getElementById('loadingTitle').textContent = title;
-  document.getElementById('loadingSub').textContent   = sub;
-  document.getElementById('loadingOverlay').classList.add('show');
-}
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
-function showToast(msg) {
+function showToast(msg, type = '') {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2600);
+  t.textContent = msg;
+  t.className = type ? `show ${type}` : 'show';
+  setTimeout(() => t.className = type, 3000);
 }
 </script>
 </body>
