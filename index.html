@@ -523,7 +523,7 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 
 <script>
 // ★★★ 設定 ★★★
-const ANTHROPIC_API_KEY = "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";
+const GEMINI_API_KEY = "AIzaSyD-XOTW_bLnp6d54D06R6qwla5xRZuUoTA";
 const GAS_PROXY_URL = "https://script.google.com/macros/s/AKfycbw22D1ACR7MwYdGs54Z2Hfrph_xjMJcH_JfpWlWaSt1wnUbGeAKCW4nlCouZQDVHqOc/exec";
 const PIN_CODE = "0375";
 
@@ -724,24 +724,18 @@ ${memoInstruction}${histCtx}
 
   showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
       })
     });
     const data = await res.json();
     hideLoading();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const text = data.content[0].text;
+    const text = data.candidates[0].content.parts[0].text;
     document.getElementById('resultText').textContent = text;
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
