@@ -522,11 +522,9 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 <div class="toast" id="toast"></div>
 
 <script>
-const ANTHROPIC_API_KEY = "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";
-const NOTION_TOKEN = "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";
+// ★★★ GASプロキシURL — デプロイ後にここを差し替える ★★★
+const GAS_PROXY_URL = "https://script.google.com/macros/s/AKfycbw22D1ACR7MwYdGs54Z2Hfrph_xjMJcH_JfpWlWaSt1wnUbGeAKCW4nlCouZQDVHqOc/exec";
 const PIN_CODE = "0375";
-const RENRAKUCHO_DB_ID = "325d6592-945a-80cc-8820-000bfbd88d5a";
-const USERS_DB_ID      = "1d9d6592-945a-813b-8784-000b28bd54fd";
 
 let selectedUser       = null;
 let selectedConditions = [];
@@ -644,51 +642,30 @@ async function loadHistory(userName) {
   const list = document.getElementById('historyList');
   list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ 読み込み中...</div>';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(GAS_PROXY_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
-        messages: [{
-          role: 'user',
-          content: `Notionの連絡帳データベース（collection ID: ${RENRAKUCHO_DB_ID}）から、
-利用者名「${userName}」の直近3件の記録を取得してください。
-各記録について以下のフィールドを取得してください：実施日、体調、活動、マルチセレクト（食事量）、メモ。
-結果を以下のJSON配列形式のみで返してください：
-[{"date":"YYYY-MM-DD","condition":["良好"],"activity":["体操"],"meal":"完食","memo":"メモ内容"}]
-JSONのみ返し、前後の説明文やマークダウン記号は不要です。データがない場合は[]を返してください。`
-        }]
-      })
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'loadHistory', userName: userName })
     });
     const data = await res.json();
-    const text = data.content?.map(c => c.text||'').join('') || '';
-    const match = text.match(/\[[\s\S]*?\]/);
-    if (match) {
-      const records = JSON.parse(match[0]);
-      historyData = records;
-      if (records.length === 0) {
-        list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
-        return;
-      }
-      list.innerHTML = records.map(h => `
-        <div class="history-item">
-          <div class="history-date">📅 ${fmtDate(h.date)}</div>
-          <div class="history-chips">
-            ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
-            ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
-            ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
-          </div>
-          <div class="history-memo">${h.memo||''}</div>
-        </div>
-      `).join('');
+    if (!data.success) throw new Error(data.error);
+    const records = data.records || [];
+    historyData = records;
+    if (records.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">📭 過去の記録はありません</div>';
+      return;
     }
+    list.innerHTML = records.map(h => `
+      <div class="history-item">
+        <div class="history-date">📅 ${fmtDate(h.date)}</div>
+        <div class="history-chips">
+          ${(h.condition||[]).map(c=>`<span class="h-chip h-chip-green">${c}</span>`).join('')}
+          ${(h.activity||[]).map(a=>`<span class="h-chip h-chip-blue">${a}</span>`).join('')}
+          ${h.meal?`<span class="h-chip h-chip-orange">${h.meal}</span>`:''}
+        </div>
+        <div class="history-memo">${h.memo||''}</div>
+      </div>
+    `).join('');
   } catch(e) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⚠️ 過去記録の取得に失敗しました</div>';
   }
@@ -746,25 +723,15 @@ ${memoInstruction}${histCtx}
 
   showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(GAS_PROXY_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'generate', prompt: prompt })
     });
     const data = await res.json();
-    const text = data.content?.[0]?.text?.trim() || '';
     hideLoading();
-    if (!text) throw new Error('empty');
-    document.getElementById('resultText').textContent = text;
+    if (!data.success || !data.text) throw new Error(data.error || 'empty');
+    document.getElementById('resultText').textContent = data.text;
     const rc = document.getElementById('resultCard');
     rc.classList.add('show');
     rc.scrollIntoView({ behavior:'smooth', block:'nearest' });
@@ -784,41 +751,28 @@ async function saveToNotion() {
 
   showLoading('Notionに保存中...', '連絡帳データベースに登録しています');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(GAS_PROXY_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://mcp.notion.com/mcp', name: 'notion-mcp', authorization_token: NOTION_TOKEN }],
-        messages: [{
-          role: 'user',
-          content: `Notionの連絡帳DB（collection ID: ${RENRAKUCHO_DB_ID}）に以下のデータを1件登録してください。
-利用者名: ${selectedUser}
-実施日: ${date}
-バイタル: ${vital1}
-バイタル（再検）: ${vital2}
-体調: ${selectedConditions.join(', ')}
-活動: ${selectedActivities.join(', ')}
-マルチセレクト（食事量）: ${selectedMeal||''}
-メモ: ${memo}
-登録完了したら「登録完了」とだけ返してください。`
-        }]
+        action: 'saveToNotion',
+        userName: selectedUser,
+        date: date,
+        vitals: vital1,
+        vitalsRecheck: vital2,
+        conditions: selectedConditions,
+        activities: selectedActivities,
+        meal: selectedMeal || '',
+        memo: memo
       })
     });
     const data = await res.json();
     hideLoading();
-    const txt = data.content?.map(c=>c.text||'').join('') || '';
-    if (txt.includes('完了') || txt.includes('登録') || txt.includes('作成')) {
+    if (data.success) {
       showToast('✅ Notionに保存しました！');
       setTimeout(resetForm, 1800);
     } else {
-      showToast('✅ 処理しました。Notionをご確認ください');
+      showToast('❌ 保存に失敗: ' + (data.error || ''));
     }
   } catch(e) {
     hideLoading();
