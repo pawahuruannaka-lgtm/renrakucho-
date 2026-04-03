@@ -348,6 +348,15 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
           </div>
         </div>
         <div class="card">
+          <div class="card-header">🏠 居住タイプ</div>
+          <div class="card-body">
+            <div class="meal-grid" style="grid-template-columns: 1fr 1fr;">
+              <button class="meal-btn" id="typeGH" onclick="selectResidenceType('グループホーム')" style="font-size:13px;padding:12px 8px;">🏠 グループホーム</button>
+              <button class="meal-btn" id="typeHome" onclick="selectResidenceType('自宅')" style="font-size:13px;padding:12px 8px;">🏡 自宅</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
           <div class="card-header">📅 実施日</div>
           <div class="card-body">
             <input type="date" class="input" id="dateInput">
@@ -534,6 +543,13 @@ let historyData        = [];
 let recheckOpen        = false;
 let userList           = [];
 let currentMode        = 'normal';
+let residenceType      = 'グループホーム';
+
+function selectResidenceType(type) {
+  residenceType = type;
+  document.getElementById('typeGH').classList.toggle('selected', type === 'グループホーム');
+  document.getElementById('typeHome').classList.toggle('selected', type === '自宅');
+}
 
 function setMode(mode) {
   currentMode = mode;
@@ -570,6 +586,7 @@ async function initApp() {
   document.getElementById('headerDate').textContent =
     today.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
   await loadUsersFromNotion();
+  selectResidenceType('グループホーム');
 }
 
 async function loadUsersFromNotion() {
@@ -695,30 +712,40 @@ async function generateText() {
   if (currentMode === 'bullet') {
     const bulletText = document.getElementById('bulletInput').value.trim();
     if (!bulletText) { showToast('⚠️ 箇条書きを入力してください'); return; }
+    const styleRule = residenceType === 'グループホーム'
+      ? '【文体】グループホームの世話人が書く簡潔な日誌風。「本日は〜」で書き出し、事実を端的に伝える。140文字程度。敬語。連続した文章で出力。余計な修飾語は省く。'
+      : '【文体】ご家族への連絡帳。温かみのある丁寧な文体。「本日は〜」で書き出し、様子が伝わるように。140文字程度。敬語・丁寧語。連続した文章で出力。';
     prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
-以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+以下の情報をもとに、利用者の「連絡帳」の文章を生成してください。
 【利用者】${selectedUser}
+【居住タイプ】${residenceType}
 【実施日】${fmtDate(date)}
 【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
 【今日の様子（箇条書き）】
 ${bulletText}${histCtx}
-【ルール】利用者の家族向け連絡帳として丁寧で温かみのある文体。200〜350字程度。バイタル数値は文中に含めず状態として表現。「本日は〜」で書き出す。敬語・丁寧語。連続した文章で出力。`;
+${styleRule}
+【重要】バイタル数値は文中に含めず状態として表現。必ず140文字程度に収めること。長すぎる文章は不可。`;
   } else {
     const memo = document.getElementById('memoInput').value.trim();
     const hasBullets = memo && memo.split('\n').some(line => line.trim().startsWith('・') || line.trim().startsWith('-'));
     const memoInstruction = hasBullets
       ? '【担当者メモ（箇条書き）】以下の箇条書きを自然な文章に展開して組み込むこと：\n' + memo
       : `【担当者メモ】${memo || 'なし'}`;
+    const styleRule = residenceType === 'グループホーム'
+      ? '【文体】グループホームの世話人が書く簡潔な日誌風。「本日は〜」で書き出し、事実を端的に伝える。140文字程度。敬語。体調→活動→食事の順。連続した文章で出力。余計な修飾語は省く。'
+      : '【文体】ご家族への連絡帳。温かみのある丁寧な文体。「本日は〜」で書き出し、様子が伝わるように。140文字程度。敬語・丁寧語。体調→活動→食事の順。連続した文章で出力。';
     prompt = `あなたは生活介護事業所「ぱわふる安中」の支援員です。
-以下の情報をもとに、利用者の家族に送る「連絡帳」の文章を生成してください。
+以下の情報をもとに、利用者の「連絡帳」の文章を生成してください。
 【利用者】${selectedUser}
+【居住タイプ】${residenceType}
 【実施日】${fmtDate(date)}
 【バイタル（初回）】${vital1 || '記録なし'}${recheckNote}
 【体調・気分】${selectedConditions.length ? selectedConditions.join('・') : '記録なし'}
 【本日の活動】${selectedActivities.length ? selectedActivities.join('、') : '記録なし'}
 【食事摂取量】${selectedMeal || '記録なし'}
 ${memoInstruction}${histCtx}
-【ルール】利用者の家族向け連絡帳として丁寧で温かみのある文体。200〜350字程度。体調→活動→食事の順。バイタル数値は文中に含めず状態として表現。「本日は〜」で書き出す。敬語・丁寧語。連続した文章で出力。`;
+${styleRule}
+【重要】バイタル数値は文中に含めず状態として表現。必ず140文字程度に収めること。長すぎる文章は不可。`;
   }
 
   showLoading('AIが連絡帳を生成中...', `${selectedUser}さんの情報を分析しています`);
@@ -807,6 +834,7 @@ function resetForm() {
   if (recheckOpen) toggleRecheck();
   document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
   setMode('normal');
+  selectResidenceType('グループホーム');
   window.scrollTo({top:0,behavior:'smooth'});
   showToast('🎉 入力をリセットしました');
 }
