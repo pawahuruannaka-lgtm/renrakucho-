@@ -293,6 +293,77 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
 .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
 .badge-purple { background: var(--reccheck-light); color: var(--reccheck); }
 .badge-cyan   { background: var(--bullet-light);   color: var(--bullet); }
+
+/* ─── 印刷ボタン ─── */
+.btn-print { background: #7C3AED; color: #fff; }
+.btn-print:hover { background: #6D28D9; }
+
+/* ─── 印刷プレビューオーバーレイ ─── */
+.print-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(15,23,42,.6);
+  z-index: 998; align-items: center; justify-content: center; padding: 20px;
+}
+.print-overlay.show { display: flex; }
+.print-preview-card {
+  background: #fff; border-radius: 14px; max-width: 640px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.print-preview-header {
+  padding: 16px 20px; border-bottom: 1px solid #E2E8F0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.print-preview-header h3 { font-size: 15px; font-weight: 700; }
+.print-preview-actions { display: flex; gap: 8px; }
+.print-preview-actions button {
+  padding: 8px 16px; border: none; border-radius: 8px; font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.pp-btn-add { background: var(--primary-light); color: var(--primary); }
+.pp-btn-print { background: #7C3AED; color: #fff; }
+.pp-btn-close { background: var(--bg); color: var(--text); border: 1px solid var(--border) !important; }
+.print-slots { padding: 16px 20px; }
+.print-slot {
+  border: 1px dashed var(--border); border-radius: 10px; padding: 16px;
+  margin-bottom: 12px; background: #FAFAFA;
+}
+.print-slot-header { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+.print-slot-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.print-slot-date { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.print-slot-info { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.print-slot-info span { background: var(--primary-light); color: var(--primary); padding: 1px 7px; border-radius: 999px; font-weight: 600; }
+.print-slot-text { font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
+.print-slot-empty {
+  text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;
+}
+.print-slot .remove-slot {
+  float: right; background: none; border: none; color: var(--danger); cursor: pointer;
+  font-size: 12px; font-weight: 700;
+}
+
+/* ─── 印刷用レイアウト（@media print） ─── */
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea {
+    position: fixed; top: 0; left: 0; width: 210mm; height: 297mm;
+    margin: 0; padding: 0; display: flex; flex-direction: column;
+  }
+  .print-page-slot {
+    height: 148.5mm; width: 100%; padding: 10mm 12mm 8mm;
+    border-bottom: 1px dashed #ccc;
+    box-sizing: border-box; overflow: hidden;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .print-page-slot:last-child { border-bottom: none; }
+  .print-facility { font-size: 9pt; color: #666; margin-bottom: 2mm; }
+  .print-name { font-size: 14pt; font-weight: 700; margin-bottom: 1mm; }
+  .print-date { font-size: 9pt; color: #666; margin-bottom: 3mm; }
+  .print-info-row { font-size: 8pt; color: #444; margin-bottom: 1.5mm; display: flex; gap: 8px; flex-wrap: wrap; }
+  .print-info-label { font-weight: 700; min-width: 60px; }
+  .print-body { font-size: 10.5pt; line-height: 1.9; margin-top: 3mm; white-space: pre-wrap; }
+  .print-slot-empty-print { height: 148.5mm; }
+  @page { margin: 0; size: A4 portrait; }
+}
 </style>
 </head>
 <body>
@@ -514,12 +585,41 @@ textarea.input { min-height: 72px; resize: vertical; line-height: 1.7; }
         <div class="result-actions">
           <button class="action-btn btn-regen" onclick="generateText()">🔄 再生成</button>
           <button class="action-btn btn-copy" onclick="copyText()">📋 コピー</button>
+          <button class="action-btn btn-print" onclick="addToPrint()">🖨️ 印刷に追加</button>
           <button class="action-btn btn-notion" onclick="saveToNotion()">⬛ Notionに保存</button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- 印刷プレビューオーバーレイ -->
+<div class="print-overlay" id="printOverlay">
+  <div class="print-preview-card">
+    <div class="print-preview-header">
+      <h3>🖨️ 印刷プレビュー（A4に2名分）</h3>
+      <div class="print-preview-actions">
+        <button class="pp-btn-close" onclick="closePrintPreview()">✕ 閉じる</button>
+        <button class="pp-btn-print" onclick="doPrint()">🖨️ 印刷する</button>
+      </div>
+    </div>
+    <div class="print-slots" id="printSlots">
+      <div class="print-slot" id="printSlot1">
+        <div class="print-slot-header">上段（1人目）</div>
+        <div class="print-slot-empty" id="printSlotEmpty1">「印刷に追加」で登録してください</div>
+        <div id="printSlotContent1" style="display:none;"></div>
+      </div>
+      <div class="print-slot" id="printSlot2">
+        <div class="print-slot-header">下段（2人目）</div>
+        <div class="print-slot-empty" id="printSlotEmpty2">「印刷に追加」で登録してください</div>
+        <div id="printSlotContent2" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 印刷用（非表示・print時のみ表示） -->
+<div id="printArea" style="display:none;"></div>
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-card">
@@ -819,6 +919,111 @@ async function copyText() {
     window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
     showToast('📋 テキストを選択しました');
   }
+}
+
+// ─── 印刷機能 ─── //
+let printSlots = [null, null];
+
+function addToPrint() {
+  const text = document.getElementById('resultText').textContent.trim();
+  if (!text) { showToast('⚠️ 先に文章を生成してください'); return; }
+  const date = document.getElementById('dateInput').value;
+  const vital1 = buildVital(document.getElementById('temp').value, document.getElementById('bp').value, document.getElementById('pulse').value);
+  const vital2 = recheckOpen ? buildVital(document.getElementById('temp2').value, document.getElementById('bp2').value, document.getElementById('pulse2').value) : '';
+  const data = {
+    name: selectedUser,
+    date: fmtDate(date),
+    type: residenceType,
+    vital1: vital1 || 'なし',
+    vital2: vital2 || '',
+    conditions: selectedConditions.length ? selectedConditions.join('・') : '',
+    activities: selectedActivities.length ? selectedActivities.join('、') : '',
+    meal: selectedMeal || '',
+    text: text
+  };
+
+  if (!printSlots[0]) {
+    printSlots[0] = data;
+    renderPrintSlot(0);
+    showToast('🖨️ 上段に追加しました（あと1名追加可能）');
+  } else if (!printSlots[1]) {
+    printSlots[1] = data;
+    renderPrintSlot(1);
+    showToast('🖨️ 下段に追加しました（2名揃いました）');
+  } else {
+    showToast('⚠️ 既に2名分登録済みです。印刷プレビューを確認してください');
+  }
+  document.getElementById('printOverlay').classList.add('show');
+}
+
+function renderPrintSlot(idx) {
+  const d = printSlots[idx];
+  const emptyEl = document.getElementById('printSlotEmpty' + (idx+1));
+  const contentEl = document.getElementById('printSlotContent' + (idx+1));
+  if (!d) {
+    emptyEl.style.display = 'block';
+    contentEl.style.display = 'none';
+    contentEl.innerHTML = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'block';
+  let infoHtml = '';
+  if (d.vital1 && d.vital1 !== 'なし') infoHtml += `<span>🩺 ${d.vital1}</span>`;
+  if (d.vital2) infoHtml += `<span>🔄 ${d.vital2}</span>`;
+  if (d.conditions) infoHtml += `<span>😊 ${d.conditions}</span>`;
+  if (d.activities) infoHtml += `<span>🏃 ${d.activities}</span>`;
+  if (d.meal) infoHtml += `<span>🍱 ${d.meal}</span>`;
+  contentEl.innerHTML = `
+    <button class="remove-slot" onclick="removePrintSlot(${idx})">✕ 削除</button>
+    <div class="print-slot-name">${d.name}（${d.type}）</div>
+    <div class="print-slot-date">${d.date}</div>
+    <div class="print-slot-info">${infoHtml}</div>
+    <div class="print-slot-text">${d.text}</div>
+  `;
+}
+
+function removePrintSlot(idx) {
+  printSlots[idx] = null;
+  renderPrintSlot(idx);
+  showToast('🗑️ 削除しました');
+}
+
+function closePrintPreview() {
+  document.getElementById('printOverlay').classList.remove('show');
+}
+
+function doPrint() {
+  if (!printSlots[0] && !printSlots[1]) {
+    showToast('⚠️ 印刷するデータがありません');
+    return;
+  }
+  const area = document.getElementById('printArea');
+  let html = '';
+  for (let i = 0; i < 2; i++) {
+    const d = printSlots[i];
+    if (d) {
+      let infoRows = '';
+      if (d.vital1 && d.vital1 !== 'なし') infoRows += `<div class="print-info-row"><span class="print-info-label">バイタル:</span>${d.vital1}</div>`;
+      if (d.vital2) infoRows += `<div class="print-info-row"><span class="print-info-label">再検:</span>${d.vital2}</div>`;
+      if (d.conditions) infoRows += `<div class="print-info-row"><span class="print-info-label">体調:</span>${d.conditions}</div>`;
+      if (d.activities) infoRows += `<div class="print-info-row"><span class="print-info-label">活動:</span>${d.activities}</div>`;
+      if (d.meal) infoRows += `<div class="print-info-row"><span class="print-info-label">食事:</span>${d.meal}</div>`;
+      html += `<div class="print-page-slot">
+        <div class="print-facility">ぱわふる安中｜連絡帳</div>
+        <div class="print-name">${d.name}（${d.type}）</div>
+        <div class="print-date">${d.date}</div>
+        ${infoRows}
+        <div class="print-body">${d.text}</div>
+      </div>`;
+    } else {
+      html += `<div class="print-page-slot print-slot-empty-print"></div>`;
+    }
+  }
+  area.innerHTML = html;
+  area.style.display = 'block';
+  closePrintPreview();
+  setTimeout(() => { window.print(); area.style.display = 'none'; }, 200);
 }
 
 function resetForm() {
